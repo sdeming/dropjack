@@ -1,0 +1,11 @@
+[package]
+name = "dropjack"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+raylib = "5.5.1"
+rusqlite = { version = "0.36.0", features = ["bundled"] }
+rand = "0.9.1"
+chrono = "0.4.31"
+dirs = "5.0"
