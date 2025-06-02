@@ -94,16 +94,34 @@ impl GameState for Playing {
         card_atlas: &Option<Texture2D>,
         particle_system: &mut ParticleSystem,
     ) {
-        Self::draw_game_board(d, game, card_atlas);
+        Self::draw_game_view(d, game, has_controller, title_font, font, card_atlas, particle_system, true);
+    }
+}
+
+impl Playing {
+    /// Draws the complete game view (board + info panel + particles)
+    /// This is used by both Playing and Paused states to avoid duplication
+    /// 
+    /// # Parameters
+    /// * `show_dynamic_cards` - If true, shows falling cards and current card. If false, only shows static board state (for pause screen)
+    pub fn draw_game_view(
+        d: &mut RaylibDrawHandle,
+        game: &Game,
+        has_controller: bool,
+        title_font: &Font,
+        font: &Font,
+        card_atlas: &Option<Texture2D>,
+        particle_system: &mut ParticleSystem,
+        show_dynamic_cards: bool,
+    ) {
+        Self::draw_game_board(d, game, card_atlas, show_dynamic_cards);
         Self::draw_info_panel(d, game, has_controller, title_font, font, card_atlas);
 
         // Draw particle effects on top of everything
         particle_system.draw(d);
     }
-}
 
-impl Playing {
-    fn draw_game_board(d: &mut RaylibDrawHandle, game: &Game, card_atlas: &Option<Texture2D>) {
+    fn draw_game_board(d: &mut RaylibDrawHandle, game: &Game, card_atlas: &Option<Texture2D>, show_dynamic_cards: bool) {
         // Draw board outline
         let board_width = game.board.width * game.board.cell_size;
         let board_height = game.board.height * game.board.cell_size;
@@ -124,46 +142,50 @@ impl Playing {
             Color::BLACK,
         );
 
-        // Draw cards on the board
-        for y in 0..game.board.height {
-            for x in 0..game.board.width {
-                if let Some(card) = game.board.grid[y as usize][x as usize] {
-                    // Check if this position has a falling card animation
-                    let has_falling =
-                        game.board.falling_cards.iter().any(|falling| {
-                            falling.x == x && falling.to_y == y && falling.is_animating
-                        });
+        // Only draw static cards on the board when in playing mode
+        // In pause mode, hide them so players can't analyze board patterns
+        if show_dynamic_cards {
+            // Draw cards on the board
+            for y in 0..game.board.height {
+                for x in 0..game.board.width {
+                    if let Some(card) = game.board.grid[y as usize][x as usize] {
+                        // Check if this position has a falling card animation
+                        let has_falling =
+                            game.board.falling_cards.iter().any(|falling| {
+                                falling.x == x && falling.to_y == y && falling.is_animating
+                            });
 
-                    // Only draw static cards if there's no falling animation
-                    if !has_falling {
-                        DrawingHelpers::draw_card_inline(
-                            d,
-                            card_atlas,
-                            card,
-                            BOARD_OFFSET_X + x * game.board.cell_size,
-                            BOARD_OFFSET_Y + y * game.board.cell_size,
-                            game.board.cell_size,
-                        );
+                        // Only draw static cards if there's no falling animation
+                        if !has_falling {
+                            DrawingHelpers::draw_card_inline(
+                                d,
+                                card_atlas,
+                                card,
+                                BOARD_OFFSET_X + x * game.board.cell_size,
+                                BOARD_OFFSET_Y + y * game.board.cell_size,
+                                game.board.cell_size,
+                            );
+                        }
                     }
+                }
+            }
+
+            // Draw falling cards with smooth animation
+            for falling_card in &game.board.falling_cards {
+                if falling_card.is_animating {
+                    DrawingHelpers::draw_card_inline(
+                        d,
+                        card_atlas,
+                        falling_card.card,
+                        BOARD_OFFSET_X + falling_card.x * game.board.cell_size,
+                        BOARD_OFFSET_Y + falling_card.visual_y as i32,
+                        game.board.cell_size,
+                    );
                 }
             }
         }
 
-        // Draw falling cards with smooth animation
-        for falling_card in &game.board.falling_cards {
-            if falling_card.is_animating {
-                DrawingHelpers::draw_card_inline(
-                    d,
-                    card_atlas,
-                    falling_card.card,
-                    BOARD_OFFSET_X + falling_card.x * game.board.cell_size,
-                    BOARD_OFFSET_Y + falling_card.visual_y as i32,
-                    game.board.cell_size,
-                );
-            }
-        }
-
-        // Draw current falling card using visual position for smooth animation
+        // Always draw current falling card (even in pause mode, as requested)
         if let Some(ref playing_card) = game.current_card {
             DrawingHelpers::draw_card_inline(
                 d,
@@ -276,13 +298,10 @@ impl GameState for Paused {
         card_atlas: &Option<Texture2D>,
         particle_system: &mut ParticleSystem,
     ) {
-        Self::draw_game_board_static(d, game, card_atlas);
-        Self::draw_info_panel(d, game, has_controller, title_font, font);
+        // Draw the complete game view as background (reusing Playing state's rendering)
+        Playing::draw_game_view(d, game, has_controller, title_font, font, card_atlas, particle_system, false);
 
-        // Draw particle effects on top of everything (before overlay)
-        particle_system.draw(d);
-
-        // Draw semi-transparent overlay
+        // Draw semi-transparent pause overlay
         d.draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Color::new(0, 0, 0, 200));
 
         // Draw paused text using title font
@@ -311,109 +330,6 @@ impl GameState for Paused {
     }
 }
 
-impl Paused {
-    fn draw_game_board_static(
-        d: &mut RaylibDrawHandle,
-        game: &Game,
-        card_atlas: &Option<Texture2D>,
-    ) {
-        // Draw board outline
-        let board_width = game.board.width * game.board.cell_size;
-        let board_height = game.board.height * game.board.cell_size;
-        d.draw_rectangle(
-            BOARD_OFFSET_X - 2,
-            BOARD_OFFSET_Y - 2,
-            board_width + 4,
-            board_height + 4,
-            Color::WHITE,
-        );
-
-        // Draw board background
-        d.draw_rectangle(
-            BOARD_OFFSET_X,
-            BOARD_OFFSET_Y,
-            board_width,
-            board_height,
-            Color::BLACK,
-        );
-
-        // Draw cards on the board (static version - no animations)
-        for y in 0..game.board.height {
-            for x in 0..game.board.width {
-                if let Some(card) = game.board.grid[y as usize][x as usize] {
-                    DrawingHelpers::draw_card_inline(
-                        d,
-                        card_atlas,
-                        card,
-                        BOARD_OFFSET_X + x * game.board.cell_size,
-                        BOARD_OFFSET_Y + y * game.board.cell_size,
-                        game.board.cell_size,
-                    );
-                }
-            }
-        }
-    }
-
-    fn draw_info_panel(
-        d: &mut RaylibDrawHandle,
-        game: &Game,
-        has_controller: bool,
-        title_font: &Font,
-        font: &Font,
-    ) {
-        // Draw panel background
-        d.draw_rectangle(
-            INFO_PANEL_X,
-            BOARD_OFFSET_Y,
-            INFO_PANEL_WIDTH,
-            SCREEN_HEIGHT - 2 * BOARD_OFFSET_Y,
-            Color::DARKBLUE,
-        );
-
-        // Draw panel title using title font - larger
-        d.draw_text_ex(
-            title_font,
-            "DropJack",
-            Vector2::new((INFO_PANEL_X + 30) as f32, (BOARD_OFFSET_Y + 30) as f32),
-            40.0,
-            1.5,
-            Color::WHITE,
-        );
-
-        // Draw difficulty - larger
-        let difficulty_text = format!("Difficulty: {}", game.difficulty.to_string());
-        d.draw_text_ex(
-            font,
-            &difficulty_text,
-            Vector2::new((INFO_PANEL_X + 30) as f32, (BOARD_OFFSET_Y + 90) as f32),
-            24.0,
-            1.0,
-            Color::WHITE,
-        );
-
-        // Draw score - larger
-        let score_text = format!("Score: {}", game.score);
-        d.draw_text_ex(
-            font,
-            &score_text,
-            Vector2::new((INFO_PANEL_X + 30) as f32, (BOARD_OFFSET_Y + 130) as f32),
-            30.0,
-            1.25,
-            Color::WHITE,
-        );
-
-        // Draw conditional controls based on controller availability
-        DrawingHelpers::draw_controls(
-            d,
-            title_font,
-            font,
-            INFO_PANEL_X,
-            BOARD_OFFSET_Y,
-            has_controller,
-        );
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GameOver;
 
@@ -432,12 +348,8 @@ impl GameState for GameOver {
         card_atlas: &Option<Texture2D>,
         particle_system: &mut ParticleSystem,
     ) {
-        // Reuse the static board drawing from Paused
-        Paused::draw_game_board_static(d, game, card_atlas);
-        Paused::draw_info_panel(d, game, has_controller, title_font, font);
-
-        // Draw particle effects on top of everything (before overlay)
-        particle_system.draw(d);
+        // Draw the complete game view as background (reusing Playing state's rendering)
+        Playing::draw_game_view(d, game, has_controller, title_font, font, card_atlas, particle_system, false);
 
         // Draw semi-transparent overlay
         d.draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Color::new(0, 0, 0, 200));
