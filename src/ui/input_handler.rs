@@ -41,7 +41,7 @@ impl InputHandler {
         has_controller: bool,
     ) {
         // Handle difficulty selection
-        if rl.is_key_pressed(KeyboardKey::KEY_LEFT)
+        if rl.is_key_pressed(KeyboardKey::KEY_LEFT) || rl.is_key_pressed(KeyboardKey::KEY_RIGHT)
             || (has_controller
                 && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT)
                     || rl.is_gamepad_button_pressed(

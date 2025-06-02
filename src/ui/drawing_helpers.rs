@@ -375,7 +375,7 @@ impl DrawingHelpers {
         } else {
             d.draw_text_ex(
                 font,
-                "Press D to change",
+                "Press Left/Right arrows to change",
                 Vector2::new((base_x + 280) as f32, (button_y + 14) as f32),
                 18.0,
                 1.0,
