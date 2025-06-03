@@ -80,13 +80,10 @@ impl AnimatedCard {
     pub fn draw(&self, d: &mut RaylibDrawHandle, atlas: &Texture2D) {
         let tint = Color::new(255, 255, 255, self.alpha);
 
-        let (atlas_row, atlas_col) = AtlasCardRenderer::get_atlas_position(self.card);
-
         AtlasCardRenderer::draw_card_with_options(
             d,
             atlas,
-            atlas_row,
-            atlas_col,
+            self.card,
             (self.position.x - self.size / 2.0) as i32,
             (self.position.y - self.size / 2.0) as i32,
             self.size as i32,

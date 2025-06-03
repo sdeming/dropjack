@@ -13,8 +13,7 @@ impl AtlasCardRenderer {
     pub fn draw_card(
         d: &mut RaylibDrawHandle,
         atlas: &Texture2D,
-        atlas_row: i32,
-        atlas_col: i32,
+        card: Card,
         x: i32,
         y: i32,
         size: i32,
@@ -22,8 +21,7 @@ impl AtlasCardRenderer {
         Self::draw_card_with_options(
             d,
             atlas,
-            atlas_row,
-            atlas_col,
+            card,
             x,
             y,
             size,
@@ -36,14 +34,15 @@ impl AtlasCardRenderer {
     pub fn draw_card_with_options(
         d: &mut RaylibDrawHandle,
         atlas: &Texture2D,
-        atlas_row: i32,
-        atlas_col: i32,
+        card: Card,
         x: i32,
         y: i32,
         size: i32,
         rotation: f32,
         tint: Color,
     ) {
+        let (atlas_row, atlas_col) = Self::get_atlas_position(card);
+        
         let source_rect = Rectangle::new(
             (atlas_col * ATLAS_CARD_SIZE) as f32,
             (atlas_row * ATLAS_CARD_SIZE) as f32,
@@ -100,7 +99,6 @@ impl AtlasCardRenderer {
         y: i32,
         size: i32,
     ) {
-        let (atlas_row, atlas_col) = Self::get_atlas_position(card);
-        Self::draw_card(d, atlas, atlas_row, atlas_col, x, y, size);
+        Self::draw_card(d, atlas, card, x, y, size);
     }
 }

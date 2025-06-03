@@ -1,32 +1,128 @@
 use crate::ui::drawing::{SCREEN_HEIGHT, SCREEN_WIDTH, BOARD_OFFSET_X, BOARD_OFFSET_Y};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
+use std::sync::LazyLock;
 
 pub struct BackgroundRenderer;
 
-impl BackgroundRenderer {
-    pub fn draw_gradient_background(d: &mut RaylibDrawHandle) {
-        // Create a sophisticated atmospheric background with subtle variations
+// Pre-computed values for gradient backgrounds
+struct GradientCache {
+    gradient_steps: i32,
+    step_height: i32,
+    gradient_colors: Vec<Color>,
+    particle_positions: Vec<(i32, i32)>,
+    particle_alphas: Vec<u8>,
+    particle_sizes: Vec<f32>,
+}
+
+impl GradientCache {
+    fn new() -> Self {
         let gradient_steps = 40;
         let step_height = SCREEN_HEIGHT / gradient_steps;
-
-        for i in 0..gradient_steps {
-            let ratio = i as f32 / gradient_steps as f32;
-            // More sophisticated color transitions with subtle color shifts
+        
+        // Pre-compute all ratios and colors
+        let step_ratios: Vec<f32> = (0..gradient_steps)
+            .map(|i| i as f32 / gradient_steps as f32)
+            .collect();
+        
+        let gradient_colors: Vec<Color> = step_ratios.iter().map(|&ratio| {
             let r = (8.0 + ratio * 12.0 + (ratio * std::f32::consts::PI).sin() * 2.0) as u8;
             let g = (15.0 + ratio * 15.0 + (ratio * 2.1).sin() * 3.0) as u8;
             let b = (25.0 + ratio * 20.0 + (ratio * 1.7).sin() * 4.0) as u8;
-
-            let color = Color::new(r, g, b, 255);
-            d.draw_rectangle(0, i * step_height, SCREEN_WIDTH, step_height + 1, color);
-        }
-
-        // Add subtle atmospheric particles for ambiance
-        for i in 0..25 {
+            Color::new(r, g, b, 255)
+        }).collect();
+        
+        // Pre-compute particle positions and properties
+        let particle_positions: Vec<(i32, i32)> = (0..25).map(|i| {
             let x = (i * 127) % SCREEN_WIDTH;
             let y = (i * 211) % SCREEN_HEIGHT;
-            let alpha = ((i * 17) % 35 + 10) as u8;
-            let size = 0.3 + ((i * 13) % 7) as f32 * 0.1;
+            (x, y)
+        }).collect();
+        
+        let particle_alphas: Vec<u8> = (0..25).map(|i| {
+            ((i * 17) % 35 + 10) as u8
+        }).collect();
+        
+        let particle_sizes: Vec<f32> = (0..25).map(|i| {
+            0.3 + ((i * 13) % 7) as f32 * 0.1
+        }).collect();
+        
+        Self {
+            gradient_steps,
+            step_height,
+            gradient_colors,
+            particle_positions,
+            particle_alphas,
+            particle_sizes,
+        }
+    }
+}
+
+// Cache for board background calculations
+struct BoardCache {
+    gradient_steps: i32,
+    x_ratios: Vec<f32>,
+    y_ratios: Vec<f32>,
+    texture_coords: Vec<(i32, i32)>,
+    texture_alphas: Vec<u8>,
+    texture_sizes: Vec<f32>,
+}
+
+impl BoardCache {
+    fn new() -> Self {
+        let gradient_steps = 25;
+        
+        // Pre-compute ratios for x and y
+        let x_ratios: Vec<f32> = (0..gradient_steps)
+            .map(|x| x as f32 / gradient_steps as f32)
+            .collect();
+        let y_ratios: Vec<f32> = (0..gradient_steps)
+            .map(|y| y as f32 / gradient_steps as f32)
+            .collect();
+        
+        // Pre-compute texture coordinates and properties
+        let texture_coords: Vec<(i32, i32)> = (0..120).map(|i| {
+            (i * 47, i * 83)
+        }).collect();
+        
+        let texture_alphas: Vec<u8> = (0..120).map(|i| {
+            ((i * 19) % 15 + 25) as u8
+        }).collect();
+        
+        let texture_sizes: Vec<f32> = (0..120).map(|i| {
+            0.2 + ((i * 11) % 5) as f32 * 0.1
+        }).collect();
+        
+        Self {
+            gradient_steps,
+            x_ratios,
+            y_ratios,
+            texture_coords,
+            texture_alphas,
+            texture_sizes,
+        }
+    }
+}
+
+// Thread-safe lazy static initialization
+static GRADIENT_CACHE: LazyLock<GradientCache> = LazyLock::new(GradientCache::new);
+static BOARD_CACHE: LazyLock<BoardCache> = LazyLock::new(BoardCache::new);
+
+impl BackgroundRenderer {
+    pub fn draw_gradient_background(d: &mut RaylibDrawHandle) {
+        let cache = &*GRADIENT_CACHE;
+        
+        // Use pre-computed colors and ratios
+        for i in 0..cache.gradient_steps {
+            let color = cache.gradient_colors[i as usize];
+            d.draw_rectangle(0, i * cache.step_height, SCREEN_WIDTH, cache.step_height + 1, color);
+        }
+
+        // Use pre-computed particle properties
+        for i in 0..25 {
+            let (x, y) = cache.particle_positions[i];
+            let alpha = cache.particle_alphas[i];
+            let size = cache.particle_sizes[i];
             d.draw_circle(x, y, size, Color::new(255, 255, 255, alpha));
         }
     }
@@ -95,44 +191,60 @@ impl BackgroundRenderer {
             Color::new(210, 180, 140, 255),
         );
 
+        let cache = &*BOARD_CACHE;
+        
         // Create realistic radial lighting on green felt (like casino table lighting) - OPTIMIZED
         let max_radius = ((board_pixel_width * board_pixel_width + board_pixel_height * board_pixel_height) as f32).sqrt() / 2.0;
+        let max_radius_squared = max_radius * max_radius;
         
         // Use efficient overlapping rectangles for smooth gradient - NO GAPS
-        let gradient_steps = 25; // Reduced for performance but still smooth
-        let step_width = (board_pixel_width as f32 / gradient_steps as f32).ceil() as i32;
-        let step_height = (board_pixel_height as f32 / gradient_steps as f32).ceil() as i32;
+        let step_width = (board_pixel_width as f32 / cache.gradient_steps as f32).ceil() as i32;
+        let step_height = (board_pixel_height as f32 / cache.gradient_steps as f32).ceil() as i32;
         
-        for y in 0..gradient_steps {
-            for x in 0..gradient_steps {
+        // Pre-compute base colors for each position
+        let mut base_colors = Vec::with_capacity((cache.gradient_steps * cache.gradient_steps) as usize);
+        
+        for y in 0..cache.gradient_steps {
+            for x in 0..cache.gradient_steps {
+                let x_ratio = cache.x_ratios[x as usize];
+                let y_ratio = cache.y_ratios[y as usize];
+                
+                let base_r = 20.0 + y_ratio * 15.0;
+                let base_g = 80.0 + x_ratio * 30.0;
+                let base_b = 30.0 + (x_ratio + y_ratio) * 10.0;
+                
+                base_colors.push((base_r, base_g, base_b));
+            }
+        }
+        
+        // Now render with pre-computed values
+        for y in 0..cache.gradient_steps {
+            for x in 0..cache.gradient_steps {
                 let rect_x = BOARD_OFFSET_X + x * step_width;
                 let rect_y = BOARD_OFFSET_Y + y * step_height;
                 
                 // Make rectangles overlap slightly to eliminate gaps
-                let rect_width = if x == gradient_steps - 1 { 
+                let rect_width = if x == cache.gradient_steps - 1 { 
                     board_pixel_width - x * step_width + 2 
                 } else { 
                     step_width + 2 
                 };
-                let rect_height = if y == gradient_steps - 1 { 
+                let rect_height = if y == cache.gradient_steps - 1 { 
                     board_pixel_height - y * step_height + 2 
                 } else { 
                     step_height + 2 
                 };
                 
-                // Calculate center of this rectangle for distance calculation
+                // Calculate the center of this rectangle for distance calculation
                 let center_x_offset = (rect_x + rect_width / 2) - center_x;
                 let center_y_offset = (rect_y + rect_height / 2) - center_y;
-                let distance = ((center_x_offset * center_x_offset + center_y_offset * center_y_offset) as f32).sqrt();
-                let distance_ratio = (distance / max_radius).min(1.0);
-                let light_factor = 1.0 - (distance_ratio * distance_ratio * 0.6);
+                let distance_squared = (center_x_offset * center_x_offset + center_y_offset * center_y_offset) as f32;
+                let distance_ratio = (distance_squared / max_radius_squared).min(1.0);
+                let light_factor = 1.0 - (distance_ratio * 0.6);
                 
-                // Rich green felt with subtle variations
-                let x_ratio = x as f32 / gradient_steps as f32;
-                let y_ratio = y as f32 / gradient_steps as f32;
-                let base_r = 20.0 + y_ratio * 15.0;
-                let base_g = 80.0 + x_ratio * 30.0;
-                let base_b = 30.0 + (x_ratio + y_ratio) * 10.0;
+                // Use pre-computed base color
+                let color_index = (y * cache.gradient_steps + x) as usize;
+                let (base_r, base_g, base_b) = base_colors[color_index];
                 
                 let r = (base_r * light_factor) as u8;
                 let g = (base_g * light_factor + 10.0) as u8;
@@ -143,27 +255,30 @@ impl BackgroundRenderer {
             }
         }
         
-        // Add realistic felt texture with more sophisticated pattern
+        // Add realistic felt texture with a more sophisticated pattern-OPTIMIZED
+        let max_distance = (board_pixel_width / 2) as f32;
+        let max_distance_squared = max_distance * max_distance;
+        
         for i in 0..120 {
-            let x = BOARD_OFFSET_X + (i * 47) % board_pixel_width;
-            let y = BOARD_OFFSET_Y + (i * 83) % board_pixel_height;
+            let (x_offset, y_offset) = cache.texture_coords[i];
+            let x = BOARD_OFFSET_X + x_offset % board_pixel_width;
+            let y = BOARD_OFFSET_Y + y_offset % board_pixel_height;
             
-            // Distance from center affects texture visibility
+            // Distance from the center affects texture visibility - optimized calculation
             let dx = x - center_x;
             let dy = y - center_y;
-            let distance_from_center = ((dx * dx + dy * dy) as f32).sqrt();
-            let max_distance = (board_pixel_width / 2) as f32;
-            let distance_ratio = (distance_from_center / max_distance).min(1.0);
+            let distance_squared = (dx * dx + dy * dy) as f32;
+            let distance_ratio = (distance_squared / max_distance_squared).min(1.0);
             
             // Texture is more visible in lit areas, less in shadows
             let base_alpha = 25.0 * (1.0 - distance_ratio * 0.7);
-            let alpha = ((i * 19) % 15 + base_alpha as i32) as u8;
+            let alpha = (cache.texture_alphas[i] as f32 + base_alpha) as u8;
             
-            let size = 0.2 + ((i * 11) % 5) as f32 * 0.1;
+            let size = cache.texture_sizes[i];
             d.draw_circle(x, y, size, Color::new(255, 255, 255, alpha));
         }
         
-        // Add subtle fabric weave pattern
+        // Add a subtle fabric weave pattern
         for i in 0..15 {
             let spacing = board_pixel_width / 15;
             let x = BOARD_OFFSET_X + i * spacing;
@@ -192,12 +307,14 @@ impl BackgroundRenderer {
             }
         }
         
-        // Enhanced grid lines with depth and lighting awareness
+        // Enhanced grid lines with depth and lighting awareness - OPTIMIZED
+        let max_width_distance = (board_pixel_width / 2) as f32;
+        let max_height_distance = (board_pixel_height / 2) as f32;
+        
         for x in 0..=board_width {
             let line_x = BOARD_OFFSET_X + x * cell_size;
             let distance_from_center = (line_x - center_x).abs() as f32;
-            let max_distance = (board_pixel_width / 2) as f32;
-            let distance_ratio = distance_from_center / max_distance;
+            let distance_ratio = distance_from_center / max_width_distance;
             
             // Grid lines are more visible in the center (lit area)
             let alpha = (50.0 * (1.0 - distance_ratio * 0.6)) as u8;
@@ -214,8 +331,7 @@ impl BackgroundRenderer {
         for y in 0..=board_height {
             let line_y = BOARD_OFFSET_Y + y * cell_size;
             let distance_from_center = (line_y - center_y).abs() as f32;
-            let max_distance = (board_pixel_height / 2) as f32;
-            let distance_ratio = distance_from_center / max_distance;
+            let distance_ratio = distance_from_center / max_height_distance;
             
             // Grid lines are more visible in the center (lit area)
             let alpha = (50.0 * (1.0 - distance_ratio * 0.6)) as u8;
