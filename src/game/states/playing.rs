@@ -1,7 +1,8 @@
 use crate::game::Game;
 use crate::ui::animated_background::AnimatedBackground;
+use crate::ui::DrawingHelpers;
 use crate::ui::drawing::{
-    DrawingHelpers, BOARD_OFFSET_X, BOARD_OFFSET_Y, INFO_PANEL_WIDTH, INFO_PANEL_X, SCREEN_HEIGHT,
+    BOARD_OFFSET_X, BOARD_OFFSET_Y, INFO_PANEL_WIDTH, INFO_PANEL_X, SCREEN_HEIGHT,
 };
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;

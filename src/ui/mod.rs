@@ -2,12 +2,17 @@
 mod atlas_card_renderer;
 pub mod drawing;
 mod drawing_helpers;
+mod card_renderer;
+mod background_renderer;
+mod text_renderer;
+mod menu_renderer;
+mod instruction_renderer;
 pub mod input_handler;
 pub mod particle_system;
 pub mod animated_background;
 
 // Re-export for easy access
-pub use drawing::DrawingHelpers;
+pub use drawing_helpers::DrawingHelpers;
 
 use self::animated_background::AnimatedBackground;
 use self::drawing::{BOARD_OFFSET_X, BOARD_OFFSET_Y, SCREEN_HEIGHT, SCREEN_WIDTH};

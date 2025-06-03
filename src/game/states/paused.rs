@@ -1,6 +1,6 @@
 use crate::game::Game;
 use crate::ui::animated_background::AnimatedBackground;
-use crate::ui::drawing::DrawingHelpers;
+use crate::ui::DrawingHelpers;
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
 

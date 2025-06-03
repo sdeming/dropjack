@@ -6,4 +6,3 @@ pub const INFO_PANEL_X: i32 = 700;
 pub const INFO_PANEL_WIDTH: i32 = 520;
 
 pub struct AtlasCardRenderer;
-pub struct DrawingHelpers;
