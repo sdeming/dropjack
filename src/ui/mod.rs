@@ -19,6 +19,7 @@ use self::drawing::{BOARD_OFFSET_X, BOARD_OFFSET_Y, SCREEN_HEIGHT, SCREEN_WIDTH}
 use self::input_handler::InputHandler;
 use self::particle_system::ParticleSystem;
 use crate::game::Game;
+use crate::audio::AudioSystem;
 use raylib::prelude::*;
 
 pub struct GameUI {
@@ -32,6 +33,7 @@ pub struct GameUI {
     last_frame_time: std::time::Instant,
     fps_counter: FPSCounter,
     animated_background: AnimatedBackground,
+    audio_system: AudioSystem,
 }
 
 struct FPSCounter {
@@ -88,6 +90,9 @@ impl GameUI {
             );
         }
 
+        // Initialize audio system
+        let audio_system = AudioSystem::new(&mut rl, &thread);
+
         GameUI {
             rl,
             thread,
@@ -99,6 +104,7 @@ impl GameUI {
             last_frame_time: std::time::Instant::now(),
             fps_counter: FPSCounter::new(),
             animated_background: AnimatedBackground::new(),
+            audio_system,
         }
     }
 
@@ -142,6 +148,13 @@ impl GameUI {
                     game.board.cell_size as f32,
                     &self.card_atlas,
                 );
+            }
+
+            // Process audio events
+            let audio_events = game.take_pending_audio_events();
+            for _event in audio_events {
+                // For now, play the click sound for all events
+                self.audio_system.play_click(&mut self.rl);
             }
 
             // Update particle system

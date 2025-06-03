@@ -55,6 +55,9 @@ impl InputHandler {
                 Difficulty::Hard => Difficulty::Easy,
                 Difficulty::Easy => Difficulty::Hard,
             };
+            
+            // Add audio event for difficulty change
+            game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
         }
 
         // Handle quit confirmation
@@ -150,6 +153,7 @@ impl InputHandler {
             || (has_controller
                 && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_DOWN)))
         {
+            game.add_audio_event(crate::game::AudioEvent::ForfeitGame);
             game.transition_to_start_screen();
         }
     }
@@ -226,6 +230,7 @@ impl InputHandler {
             || (has_controller
                 && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_DOWN)))
         {
+            game.add_audio_event(crate::game::AudioEvent::QuitGame);
             std::process::exit(0);
         }
     }

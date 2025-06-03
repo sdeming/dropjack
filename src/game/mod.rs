@@ -31,6 +31,23 @@ pub struct Game {
     pub pending_explosions: Vec<(i32, i32, Card)>,
     pub delayed_destructions: Vec<DelayedDestruction>,
     pub last_dropped_x: Option<i32>,
+    pub pending_audio_events: Vec<AudioEvent>,
+}
+
+#[derive(Debug, Clone)]
+pub enum AudioEvent {
+    DifficultyChange,
+    StartGame,
+    DropCard,
+    MakeMatch,
+    ExplodeCard,
+    PauseGame,
+    ResumeGame,
+    ForfeitGame,
+    GameOver,
+    OpenQuitConfirmation,
+    ReturnToGame,
+    QuitGame,
 }
 
 impl Game {
@@ -63,6 +80,7 @@ impl Game {
             pending_explosions: Vec::new(),
             delayed_destructions: Vec::new(),
             last_dropped_x: None, // Initialize to None for the first card
+            pending_audio_events: Vec::new(),
         }
     }
 
@@ -84,6 +102,9 @@ impl Game {
 
         // Draw the first card
         self.spawn_new_card();
+
+        // Add audio event for starting game
+        self.add_audio_event(AudioEvent::StartGame);
     }
 
     pub fn spawn_new_card(&mut self) {
@@ -128,8 +149,14 @@ impl Game {
     fn process_card_removals(&mut self) {
         let removed_cards = self.board.process_marked_removals();
         if !removed_cards.is_empty() {
+            // Add audio event for making match
+            self.add_audio_event(AudioEvent::MakeMatch);
+            
             for (x, y, card) in removed_cards {
                 self.pending_explosions.push((x, y, card));
+                
+                // Add audio event for exploding card
+                self.add_audio_event(AudioEvent::ExplodeCard);
 
                 // Calculate and add the score
                 let base_score = 21;
@@ -311,6 +338,9 @@ impl Game {
                 playing_card.position.y,
                 playing_card.card,
             );
+            
+            // Add audio event for dropping card
+            self.add_audio_event(AudioEvent::DropCard);
         }
     }
 
@@ -458,21 +488,35 @@ impl Game {
 
     pub fn transition_to_start_screen(&mut self) {
         self.state = Box::new(StartScreen);
+        self.add_audio_event(AudioEvent::ReturnToGame);
     }
 
     pub fn transition_to_playing(&mut self) {
         self.state = Box::new(Playing);
+        self.add_audio_event(AudioEvent::ResumeGame);
     }
 
     pub fn transition_to_paused(&mut self) {
         self.state = Box::new(Paused);
+        self.add_audio_event(AudioEvent::PauseGame);
     }
 
     pub fn transition_to_game_over(&mut self) {
         self.state = Box::new(GameOver);
+        self.add_audio_event(AudioEvent::GameOver);
     }
 
     pub fn transition_to_quit_confirm(&mut self) {
         self.state = Box::new(QuitConfirm);
+        self.add_audio_event(AudioEvent::OpenQuitConfirmation);
+    }
+
+    // Audio event management
+    pub fn add_audio_event(&mut self, event: AudioEvent) {
+        self.pending_audio_events.push(event);
+    }
+
+    pub fn take_pending_audio_events(&mut self) -> Vec<AudioEvent> {
+        std::mem::take(&mut self.pending_audio_events)
     }
 }
