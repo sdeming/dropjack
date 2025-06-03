@@ -1,10 +1,10 @@
-use crate::models::Card;
 use crate::game::Game;
-use crate::ui::card_renderer::CardRenderer;
+use crate::models::Card;
 use crate::ui::background_renderer::BackgroundRenderer;
-use crate::ui::text_renderer::TextRenderer;
-use crate::ui::menu_renderer::MenuRenderer;
+use crate::ui::card_renderer::CardRenderer;
 use crate::ui::instruction_renderer::InstructionRenderer;
+use crate::ui::menu_renderer::MenuRenderer;
+use crate::ui::text_renderer::TextRenderer;
 use raylib::drawing::RaylibDrawHandle;
 use raylib::prelude::{Font, Texture2D};
 
@@ -28,7 +28,12 @@ impl DrawingHelpers {
         BackgroundRenderer::draw_gradient_background(d);
     }
 
-    pub fn draw_game_board_background(d: &mut RaylibDrawHandle, board_width: i32, board_height: i32, cell_size: i32) {
+    pub fn draw_game_board_background(
+        d: &mut RaylibDrawHandle,
+        board_width: i32,
+        board_height: i32,
+        cell_size: i32,
+    ) {
         BackgroundRenderer::draw_game_board_background(d, board_width, board_height, cell_size);
     }
 
@@ -78,7 +83,14 @@ impl DrawingHelpers {
         board_offset_y: i32,
         has_controller: bool,
     ) {
-        InstructionRenderer::draw_controls(d, title_font, font, info_panel_x, board_offset_y, has_controller);
+        InstructionRenderer::draw_controls(
+            d,
+            title_font,
+            font,
+            info_panel_x,
+            board_offset_y,
+            has_controller,
+        );
     }
 
     pub fn draw_game_over_instructions(

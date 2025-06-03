@@ -8,5 +8,7 @@ pub mod ui;
 // Re-export common models for easy access
 pub use cards::{Card, CardColor, Deck, Suit, Value};
 pub use database::HighScore;
-pub use game::{DelayedDestruction, Difficulty, FallingCard, PlayingCard, Position, VisualPosition};
+pub use game::{
+    DelayedDestruction, Difficulty, FallingCard, PlayingCard, Position, VisualPosition,
+};
 pub use ui::Particle;

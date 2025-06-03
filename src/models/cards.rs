@@ -136,7 +136,9 @@ impl Deck {
         let cards = Suit::all()
             .into_iter()
             .flat_map(|suit| {
-                Value::all().into_iter().map(move |value| Card::new(suit, value))
+                Value::all()
+                    .into_iter()
+                    .map(move |value| Card::new(suit, value))
             })
             .collect();
         Deck { cards }
@@ -163,4 +165,4 @@ impl Deck {
 pub enum CardColor {
     Red,
     Black,
-} 
+}

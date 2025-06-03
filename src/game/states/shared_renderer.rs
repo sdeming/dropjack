@@ -12,7 +12,13 @@ pub struct SharedRenderer;
 impl SharedRenderer {
     /// Draw a semi-transparent overlay covering the entire screen
     pub fn draw_overlay(d: &mut RaylibDrawHandle, alpha: u8) {
-        d.draw_rectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, Color::new(0, 0, 0, alpha));
+        d.draw_rectangle(
+            0,
+            0,
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT,
+            Color::new(0, 0, 0, alpha),
+        );
     }
 
     /// Draw centered text with consistent styling
@@ -29,15 +35,8 @@ impl SharedRenderer {
         let approx_char_width = size * 0.6; // Approximation for most fonts
         let text_width = text.len() as f32 * approx_char_width;
         let x = (SCREEN_WIDTH as f32 - text_width) / 2.0;
-        
-        d.draw_text_ex(
-            font,
-            text,
-            Vector2::new(x, y),
-            size,
-            spacing,
-            color,
-        );
+
+        d.draw_text_ex(font, text, Vector2::new(x, y), size, spacing, color);
     }
 
     /// Draw text with consistent positioning (not centered)
@@ -51,14 +50,7 @@ impl SharedRenderer {
         spacing: f32,
         color: Color,
     ) {
-        d.draw_text_ex(
-            font,
-            text,
-            Vector2::new(x, y),
-            size,
-            spacing,
-            color,
-        );
+        d.draw_text_ex(font, text, Vector2::new(x, y), size, spacing, color);
     }
 
     /// Draw a styled input box for text entry
@@ -88,17 +80,34 @@ impl SharedRenderer {
         render_background: F,
         overlay_alpha: u8,
         render_content: C,
-    ) 
-    where
-        F: FnOnce(&mut RaylibDrawHandle, &Game, bool, &Font, &Font, &Texture2D, &mut ParticleSystem, &mut AnimatedBackground),
+    ) where
+        F: FnOnce(
+            &mut RaylibDrawHandle,
+            &Game,
+            bool,
+            &Font,
+            &Font,
+            &Texture2D,
+            &mut ParticleSystem,
+            &mut AnimatedBackground,
+        ),
         C: FnOnce(&mut RaylibDrawHandle, &Game, bool, &Font, &Font),
     {
         // Render background
-        render_background(d, game, has_controller, title_font, font, card_atlas, particle_system, animated_background);
-        
+        render_background(
+            d,
+            game,
+            has_controller,
+            title_font,
+            font,
+            card_atlas,
+            particle_system,
+            animated_background,
+        );
+
         // Draw overlay
         Self::draw_overlay(d, overlay_alpha);
-        
+
         // Render content
         render_content(d, game, has_controller, title_font, font);
     }
@@ -119,7 +128,16 @@ impl BackgroundRenderer {
         _animated_background: &mut AnimatedBackground,
     ) {
         use super::playing::Playing;
-        Playing::draw_game_view(d, game, has_controller, title_font, font, card_atlas, particle_system, false);
+        Playing::draw_game_view(
+            d,
+            game,
+            has_controller,
+            title_font,
+            font,
+            card_atlas,
+            particle_system,
+            false,
+        );
     }
 
     pub fn render_start_screen(
@@ -134,7 +152,16 @@ impl BackgroundRenderer {
     ) {
         use super::start_screen::StartScreen;
         let start_screen = StartScreen;
-        start_screen.render(d, game, has_controller, title_font, font, card_atlas, particle_system, animated_background);
+        start_screen.render(
+            d,
+            game,
+            has_controller,
+            title_font,
+            font,
+            card_atlas,
+            particle_system,
+            animated_background,
+        );
     }
 }
 
@@ -151,7 +178,16 @@ pub trait OverlayState {
     );
 
     /// Get the background renderer function for this state
-    fn get_background_renderer() -> fn(&mut RaylibDrawHandle, &Game, bool, &Font, &Font, &Texture2D, &mut ParticleSystem, &mut AnimatedBackground);
+    fn get_background_renderer() -> fn(
+        &mut RaylibDrawHandle,
+        &Game,
+        bool,
+        &Font,
+        &Font,
+        &Texture2D,
+        &mut ParticleSystem,
+        &mut AnimatedBackground,
+    );
 
     /// Get the overlay alpha value (default 200)
     fn get_overlay_alpha(&self) -> u8 {
@@ -186,4 +222,4 @@ pub trait OverlayState {
             },
         );
     }
-} 
+}

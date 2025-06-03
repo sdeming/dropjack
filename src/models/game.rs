@@ -1,6 +1,6 @@
+use super::cards::Card;
 use std::fmt::Display;
 use std::time::Instant;
-use super::cards::Card;
 
 // Position of a card on the board
 #[derive(Debug, Clone, Copy)]
@@ -59,4 +59,4 @@ pub struct FallingCard {
     pub x: i32,
     pub visual_y: f32,
     pub is_animating: bool,
-} 
+}

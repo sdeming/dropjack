@@ -19,13 +19,13 @@ impl ShadowConfig {
             Vector2::new(3.0, 3.0),
             Vector2::new(1.5, 1.5),
         ];
-        
+
         let colors = vec![
             Color::new(0, 0, 0, 150),
             Color::new(0, 0, 0, 100),
             Color::new(0, 0, 0, 50),
         ];
-        
+
         Self { offsets, colors }
     }
 }
@@ -67,13 +67,21 @@ impl TextRenderer {
     pub fn draw_title_with_shadow(d: &mut RaylibDrawHandle, title_font: &Font) {
         let cache = &*TEXT_CACHE;
         let title = "DropJack";
-        
+
         // Draw shadow layers using pre-computed values
-        for (offset, color) in cache.shadow_config.offsets.iter().zip(cache.shadow_config.colors.iter()) {
+        for (offset, color) in cache
+            .shadow_config
+            .offsets
+            .iter()
+            .zip(cache.shadow_config.colors.iter())
+        {
             d.draw_text_ex(
                 title_font,
                 title,
-                Vector2::new(cache.title_position.x + offset.x, cache.title_position.y + offset.y),
+                Vector2::new(
+                    cache.title_position.x + offset.x,
+                    cache.title_position.y + offset.y,
+                ),
                 cache.title_size,
                 2.0,
                 *color,
@@ -89,7 +97,7 @@ impl TextRenderer {
             2.0,
             cache.title_main_color,
         );
-        
+
         d.draw_text_ex(
             title_font,
             title,
@@ -103,17 +111,20 @@ impl TextRenderer {
     pub fn draw_subtitle(d: &mut RaylibDrawHandle, font: &Font) {
         let cache = &*TEXT_CACHE;
         let subtitle = "A Strategic Card-Falling Puzzle";
-        
+
         // Shadow
         d.draw_text_ex(
             font,
             subtitle,
-            Vector2::new(cache.subtitle_position.x + 2.0, cache.subtitle_position.y + 2.0),
+            Vector2::new(
+                cache.subtitle_position.x + 2.0,
+                cache.subtitle_position.y + 2.0,
+            ),
             cache.subtitle_size,
             1.0,
             cache.subtitle_shadow_color,
         );
-        
+
         // Main text
         d.draw_text_ex(
             font,
@@ -124,4 +135,4 @@ impl TextRenderer {
             cache.subtitle_main_color,
         );
     }
-} 
+}

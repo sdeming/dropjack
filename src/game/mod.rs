@@ -3,8 +3,10 @@ pub mod board;
 pub mod states;
 
 use self::board::Board;
-use crate::models::{Card, Deck, DelayedDestruction, Difficulty, HighScore, PlayingCard, Position, VisualPosition};
 use crate::database::Database;
+use crate::models::{
+    Card, Deck, DelayedDestruction, Difficulty, HighScore, PlayingCard, Position, VisualPosition,
+};
 use std::path::Path;
 use std::time::{Duration, Instant};
 
@@ -155,10 +157,10 @@ impl Game {
         if !removed_cards.is_empty() {
             // Add audio event for making match
             self.add_audio_event(AudioEvent::MakeMatch);
-            
+
             for (x, y, card) in removed_cards {
                 self.pending_explosions.push((x, y, card));
-                
+
                 // Add audio event for exploding card
                 self.add_audio_event(AudioEvent::ExplodeCard);
 
@@ -348,7 +350,7 @@ impl Game {
                 playing_card.position.y,
                 playing_card.card,
             );
-            
+
             // Add audio event for dropping card
             self.add_audio_event(AudioEvent::DropCard);
         }

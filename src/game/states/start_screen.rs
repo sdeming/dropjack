@@ -1,6 +1,6 @@
 use crate::game::Game;
-use crate::ui::animated_background::AnimatedBackground;
 use crate::ui::DrawingHelpers;
+use crate::ui::animated_background::AnimatedBackground;
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
 
@@ -50,4 +50,4 @@ impl GameState for StartScreen {
         // Call-to-action button with glow effect
         DrawingHelpers::draw_start_button(d, title_font, has_controller);
     }
-} 
+}

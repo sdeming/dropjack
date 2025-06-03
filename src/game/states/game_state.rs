@@ -22,4 +22,4 @@ pub trait GameState {
         particle_system: &mut ParticleSystem,
         animated_background: &mut AnimatedBackground,
     );
-} 
+}

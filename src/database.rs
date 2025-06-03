@@ -1,6 +1,6 @@
-use rusqlite::{params, Connection, Result};
-use std::path::Path;
 use crate::models::HighScore;
+use rusqlite::{Connection, Result, params};
+use std::path::Path;
 
 pub struct Database {
     conn: Connection,

@@ -15,37 +15,38 @@ impl ParticleSystem {
     pub fn new() -> Self {
         // Pre-compute explosion velocity patterns for reuse
         let total_particles = 35;
-        let explosion_velocities: Vec<Vector2> = (0..total_particles).map(|i| {
-            let wave = i / 12;
-            let base_speed = match wave {
-                0 => 80.0,
-                1 => 60.0,
-                2 => 40.0,
-                _ => 100.0,
-            };
-            
-            let angle = (i as f32 / (total_particles / 4) as f32) * 2.0 * std::f32::consts::PI;
-            let speed_variation = 0.5 + (i as f32 / total_particles as f32); // Deterministic instead of random
-            let final_speed = base_speed * speed_variation;
+        let explosion_velocities: Vec<Vector2> = (0..total_particles)
+            .map(|i| {
+                let wave = i / 12;
+                let base_speed = match wave {
+                    0 => 80.0,
+                    1 => 60.0,
+                    2 => 40.0,
+                    _ => 100.0,
+                };
 
-            Vector2::new(
-                angle.cos() * final_speed,
-                angle.sin() * final_speed,
-            )
-        }).collect();
-        
+                let angle = (i as f32 / (total_particles / 4) as f32) * 2.0 * std::f32::consts::PI;
+                let speed_variation = 0.5 + (i as f32 / total_particles as f32); // Deterministic instead of random
+                let final_speed = base_speed * speed_variation;
+
+                Vector2::new(angle.cos() * final_speed, angle.sin() * final_speed)
+            })
+            .collect();
+
         // Pre-compute sparkle velocities
-        let sparkle_velocities: Vec<Vector2> = (0..8).map(|i| {
-            let angle = (i as f32 / 8.0) * 2.0 * std::f32::consts::PI;
-            Vector2::new(
-                angle.cos() * 20.0,
-                angle.sin() * 20.0 - 30.0, // Upward bias
-            )
-        }).collect();
-        
+        let sparkle_velocities: Vec<Vector2> = (0..8)
+            .map(|i| {
+                let angle = (i as f32 / 8.0) * 2.0 * std::f32::consts::PI;
+                Vector2::new(
+                    angle.cos() * 20.0,
+                    angle.sin() * 20.0 - 30.0, // Upward bias
+                )
+            })
+            .collect();
+
         // Pre-define secondary colors
         let explosion_colors = [Color::WHITE, Color::YELLOW, Color::ORANGE, Color::LIGHTGRAY];
-        
+
         Self {
             particles: Vec::new(),
             particle_pool: Vec::with_capacity(100), // Pre-allocate space for reuse
@@ -70,7 +71,7 @@ impl ParticleSystem {
 
         // Generate particles using pre-computed patterns
         let total_particles = self.explosion_velocities.len();
-        
+
         for i in 0..total_particles {
             let wave = i / 12;
             let (life_time, particle_size) = match wave {
@@ -125,7 +126,7 @@ impl ParticleSystem {
                 particle.angular_velocity = ((i % 7) as f32 - 3.0) * 3.0;
                 particle
             };
-            
+
             self.particles.push(particle);
         }
 
@@ -157,7 +158,7 @@ impl ParticleSystem {
                 sparkle.angular_velocity = i as f32 * 2.0 - 8.0;
                 sparkle
             };
-            
+
             self.particles.push(sparkle);
         }
     }

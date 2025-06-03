@@ -12,9 +12,7 @@ pub struct Board {
 
 impl Board {
     pub fn new(width: i32, height: i32, cell_size: i32) -> Self {
-        let grid = (0..height)
-            .map(|_| vec![None; width as usize])
-            .collect();
+        let grid = (0..height).map(|_| vec![None; width as usize]).collect();
 
         Board {
             width,

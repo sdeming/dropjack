@@ -55,7 +55,7 @@ impl InputHandler {
                 Difficulty::Hard => Difficulty::Easy,
                 Difficulty::Easy => Difficulty::Hard,
             };
-            
+
             // Add audio event for difficulty change
             game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
         }

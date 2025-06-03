@@ -1,15 +1,15 @@
 // Sub-modules
+pub mod animated_background;
 mod atlas_card_renderer;
+mod background_renderer;
+mod card_renderer;
 pub mod drawing;
 mod drawing_helpers;
-mod card_renderer;
-mod background_renderer;
-mod text_renderer;
-mod menu_renderer;
-mod instruction_renderer;
 pub mod input_handler;
+mod instruction_renderer;
+mod menu_renderer;
 pub mod particle_system;
-pub mod animated_background;
+mod text_renderer;
 
 // Re-export for easy access
 pub use drawing_helpers::DrawingHelpers;
@@ -18,8 +18,8 @@ use self::animated_background::AnimatedBackground;
 use self::drawing::{BOARD_OFFSET_X, BOARD_OFFSET_Y, SCREEN_HEIGHT, SCREEN_WIDTH};
 use self::input_handler::InputHandler;
 use self::particle_system::ParticleSystem;
-use crate::game::Game;
 use crate::audio::AudioSystem;
+use crate::game::Game;
 use raylib::prelude::*;
 
 pub struct GameUI {
@@ -48,16 +48,20 @@ impl FPSCounter {
             last_update: std::time::Instant::now(),
         }
     }
-    
+
     fn update(&mut self, delta_time: f32) {
         // Update FPS calculation every 100ms for stable display
         let now = std::time::Instant::now();
         if now.duration_since(self.last_update).as_millis() > 100 {
-            self.current_fps = if delta_time > 0.0 { 1.0 / delta_time } else { 0.0 };
+            self.current_fps = if delta_time > 0.0 {
+                1.0 / delta_time
+            } else {
+                0.0
+            };
             self.last_update = now;
         }
     }
-    
+
     fn get_fps(&self) -> f32 {
         self.current_fps
     }
@@ -92,7 +96,7 @@ impl GameUI {
 
         // Initialize audio system
         let audio_system = AudioSystem::new(&mut rl, &thread);
-        
+
         // Print audio status for debugging/information
         audio_system.print_audio_status();
 
@@ -175,7 +179,9 @@ impl GameUI {
                     has_controller,
                     &self.title_font,
                     &self.font,
-                    self.card_atlas.as_ref().expect("Card atlas must be loaded!"),
+                    self.card_atlas
+                        .as_ref()
+                        .expect("Card atlas must be loaded!"),
                     &mut self.particle_system,
                     &mut self.animated_background,
                 );
@@ -183,30 +189,24 @@ impl GameUI {
                 // Draw FPS counter inline
                 let fps = self.fps_counter.get_fps();
                 let fps_text = format!("FPS: {:.1}", fps);
-                
+
                 // Position in top-right corner
                 let text_x = SCREEN_WIDTH - 100;
                 let text_y = 10;
                 let font_size = 20.0;
-                
+
                 // Choose color based on FPS performance
                 let fps_color = if fps >= 55.0 {
-                    Color::new(0, 255, 0, 255)   // Green for good FPS
+                    Color::new(0, 255, 0, 255) // Green for good FPS
                 } else if fps >= 30.0 {
                     Color::new(255, 255, 0, 255) // Yellow for medium FPS
                 } else {
-                    Color::new(255, 0, 0, 255)   // Red for poor FPS
+                    Color::new(255, 0, 0, 255) // Red for poor FPS
                 };
-                
+
                 // Draw background panel for better visibility
-                d.draw_rectangle(
-                    text_x - 10,
-                    text_y - 5,
-                    95,
-                    30,
-                    Color::new(0, 0, 0, 150),
-                );
-                
+                d.draw_rectangle(text_x - 10, text_y - 5, 95, 30, Color::new(0, 0, 0, 150));
+
                 // Draw border
                 d.draw_rectangle_lines(
                     text_x - 10,
@@ -215,7 +215,7 @@ impl GameUI {
                     30,
                     Color::new(255, 255, 255, 100),
                 );
-                
+
                 // Draw shadow
                 d.draw_text_ex(
                     &self.font,
@@ -225,7 +225,7 @@ impl GameUI {
                     1.0,
                     Color::new(0, 0, 0, 150),
                 );
-                
+
                 // Draw main text
                 d.draw_text_ex(
                     &self.font,

@@ -18,16 +18,7 @@ impl AtlasCardRenderer {
         y: i32,
         size: i32,
     ) {
-        Self::draw_card_with_options(
-            d,
-            atlas,
-            card,
-            x,
-            y,
-            size,
-            0.0,
-            Color::WHITE,
-        );
+        Self::draw_card_with_options(d, atlas, card, x, y, size, 0.0, Color::WHITE);
     }
 
     /// Draw a card from the atlas with full customization options
@@ -42,7 +33,7 @@ impl AtlasCardRenderer {
         tint: Color,
     ) {
         let (atlas_row, atlas_col) = Self::get_atlas_position(card);
-        
+
         let source_rect = Rectangle::new(
             (atlas_col * ATLAS_CARD_SIZE) as f32,
             (atlas_row * ATLAS_CARD_SIZE) as f32,

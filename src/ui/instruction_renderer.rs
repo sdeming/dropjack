@@ -17,7 +17,7 @@ impl InstructionRenderer {
         // Enhanced controls title with glow effect
         let controls_x = info_panel_x + 30;
         let controls_y = board_offset_y + 350;
-        
+
         // Glow effect for the title
         for glow in 1..=3 {
             let glow_alpha = 40 / glow;
@@ -30,7 +30,7 @@ impl InstructionRenderer {
                 Color::new(255, 215, 0, glow_alpha as u8),
             );
         }
-        
+
         // Shadow
         d.draw_text_ex(
             title_font,
@@ -40,7 +40,7 @@ impl InstructionRenderer {
             1.0,
             Color::new(0, 0, 0, 150),
         );
-        
+
         // Main title
         d.draw_text_ex(
             title_font,
@@ -50,16 +50,25 @@ impl InstructionRenderer {
             1.0,
             Color::new(255, 215, 0, 255),
         );
-        
+
         let instructions = match has_controller {
             true => [
-                ("D-Pad/Left Stick: Move card", Color::new(150, 255, 150, 255)),
-                ("D-Pad Down/Stick Down: Soft drop", Color::new(200, 200, 255, 255)),
+                (
+                    "D-Pad/Left Stick: Move card",
+                    Color::new(150, 255, 150, 255),
+                ),
+                (
+                    "D-Pad Down/Stick Down: Soft drop",
+                    Color::new(200, 200, 255, 255),
+                ),
                 ("A Button: Hard drop", Color::new(255, 200, 150, 255)),
                 ("Start: Pause", Color::new(255, 150, 200, 255)),
             ],
             false => [
-                ("Left/Right Arrow: Move card", Color::new(255, 255, 150, 255)),
+                (
+                    "Left/Right Arrow: Move card",
+                    Color::new(255, 255, 150, 255),
+                ),
                 ("Down Arrow: Soft drop", Color::new(200, 200, 255, 255)),
                 ("Space: Hard drop", Color::new(255, 200, 150, 255)),
                 ("Escape: Pause", Color::new(255, 150, 200, 255)),
@@ -68,7 +77,7 @@ impl InstructionRenderer {
 
         for (i, (text, color)) in instructions.iter().enumerate() {
             let y_pos = controls_y + 40 + i as i32 * 25;
-            
+
             // Subtle shadow for each instruction
             d.draw_text_ex(
                 font,
@@ -78,7 +87,7 @@ impl InstructionRenderer {
                 1.0,
                 Color::new(0, 0, 0, 100),
             );
-            
+
             // Main text with color coding
             d.draw_text_ex(
                 font,
@@ -192,4 +201,4 @@ impl InstructionRenderer {
             );
         }
     }
-} 
+}

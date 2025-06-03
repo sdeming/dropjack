@@ -6,4 +6,4 @@ pub struct HighScore {
     pub score: i32,
     pub difficulty: String,
     pub date: String,
-} 
+}

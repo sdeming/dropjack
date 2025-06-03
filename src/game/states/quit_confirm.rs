@@ -1,6 +1,6 @@
 use crate::game::Game;
-use crate::ui::animated_background::AnimatedBackground;
 use crate::ui::DrawingHelpers;
+use crate::ui::animated_background::AnimatedBackground;
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
 
@@ -46,7 +46,16 @@ impl OverlayState for QuitConfirm {
         Self::render_content(d, game, has_controller, title_font, font);
     }
 
-    fn get_background_renderer() -> fn(&mut RaylibDrawHandle, &Game, bool, &Font, &Font, &Texture2D, &mut ParticleSystem, &mut AnimatedBackground) {
+    fn get_background_renderer() -> fn(
+        &mut RaylibDrawHandle,
+        &Game,
+        bool,
+        &Font,
+        &Font,
+        &Texture2D,
+        &mut ParticleSystem,
+        &mut AnimatedBackground,
+    ) {
         BackgroundRenderer::render_start_screen
     }
 }
@@ -67,6 +76,15 @@ impl GameState for QuitConfirm {
         particle_system: &mut ParticleSystem,
         animated_background: &mut AnimatedBackground,
     ) {
-        self.render_overlay(d, game, has_controller, title_font, font, card_atlas, particle_system, animated_background);
+        self.render_overlay(
+            d,
+            game,
+            has_controller,
+            title_font,
+            font,
+            card_atlas,
+            particle_system,
+            animated_background,
+        );
     }
-} 
+}

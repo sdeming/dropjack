@@ -35,10 +35,13 @@ impl PanelLayout {
         let corner_size = 15;
 
         let corner_positions = [
-            (panel_x, panel_y), // Top-left
-            (panel_x + panel_width - corner_size, panel_y), // Top-right
+            (panel_x, panel_y),                              // Top-left
+            (panel_x + panel_width - corner_size, panel_y),  // Top-right
             (panel_x, panel_y + panel_height - corner_size), // Bottom-left
-            (panel_x + panel_width - corner_size, panel_y + panel_height - corner_size), // Bottom-right
+            (
+                panel_x + panel_width - corner_size,
+                panel_y + panel_height - corner_size,
+            ), // Bottom-right
         ];
 
         Self {
@@ -183,11 +186,13 @@ impl StartButtonLayout {
         let button_width = 400;
         let button_height = 80;
 
-        let glow_configs: Vec<(i32, u8)> = (0..6).map(|i| {
-            let glow_size = (i + 1) * 3;
-            let alpha = 25 - i * 4;
-            (glow_size, alpha as u8)
-        }).collect();
+        let glow_configs: Vec<(i32, u8)> = (0..6)
+            .map(|i| {
+                let glow_size = (i + 1) * 3;
+                let alpha = 25 - i * 4;
+                (glow_size, alpha as u8)
+            })
+            .collect();
 
         Self {
             button_x,
@@ -216,7 +221,7 @@ static START_BUTTON_LAYOUT: LazyLock<StartButtonLayout> = LazyLock::new(StartBut
 impl MenuRenderer {
     pub fn draw_main_panel(d: &mut RaylibDrawHandle) {
         let layout = &*PANEL_LAYOUT;
-        
+
         // Draw panel shadow
         d.draw_rectangle(
             layout.panel_x + layout.shadow_offset.0,
@@ -271,7 +276,7 @@ impl MenuRenderer {
         has_controller: bool,
     ) {
         let layout = &*DIFFICULTY_LAYOUT;
-        
+
         // Difficulty label
         d.draw_text_ex(
             title_font,
@@ -295,7 +300,13 @@ impl MenuRenderer {
             layout.unselected_text_color
         };
 
-        d.draw_rectangle(layout.base_x, layout.button_y, layout.button_width, layout.button_height, easy_bg_color);
+        d.draw_rectangle(
+            layout.base_x,
+            layout.button_y,
+            layout.button_width,
+            layout.button_height,
+            easy_bg_color,
+        );
 
         // Hard button
         let hard_selected = game.difficulty == crate::models::Difficulty::Hard;
@@ -338,11 +349,17 @@ impl MenuRenderer {
 
         // Instructions with pre-computed colors
         let (instruction_text, instruction_color) = if has_controller {
-            ("D-Pad Left/Right to change", layout.controller_instruction_color)
+            (
+                "D-Pad Left/Right to change",
+                layout.controller_instruction_color,
+            )
         } else {
-            ("Press Left/Right arrows to change", layout.keyboard_instruction_color)
+            (
+                "Press Left/Right arrows to change",
+                layout.keyboard_instruction_color,
+            )
         };
-        
+
         d.draw_text_ex(
             font,
             instruction_text,
@@ -360,7 +377,7 @@ impl MenuRenderer {
         game: &Game,
     ) {
         let layout = &*HIGH_SCORE_LAYOUT;
-        
+
         // High scores title
         d.draw_text_ex(
             title_font,
@@ -378,7 +395,12 @@ impl MenuRenderer {
 
             // Medal circle
             let circle_center_y = y_offset + 15;
-            d.draw_circle(layout.circle_center_x, circle_center_y, layout.circle_radius, medal_color);
+            d.draw_circle(
+                layout.circle_center_x,
+                circle_center_y,
+                layout.circle_radius,
+                medal_color,
+            );
             d.draw_circle_lines(
                 layout.circle_center_x,
                 circle_center_y,
@@ -391,7 +413,10 @@ impl MenuRenderer {
             d.draw_text_ex(
                 font,
                 rank_text,
-                Vector2::new((layout.circle_center_x - 6) as f32, (circle_center_y - 8) as f32),
+                Vector2::new(
+                    (layout.circle_center_x - 6) as f32,
+                    (circle_center_y - 8) as f32,
+                ),
                 18.0,
                 1.0,
                 Color::BLACK,
@@ -441,7 +466,7 @@ impl MenuRenderer {
 
     pub fn draw_start_button(d: &mut RaylibDrawHandle, title_font: &Font, has_controller: bool) {
         let layout = &*START_BUTTON_LAYOUT;
-        
+
         // Draw glow effects using pre-computed values
         for &(glow_size, alpha) in &layout.glow_configs {
             d.draw_rectangle(
@@ -461,7 +486,7 @@ impl MenuRenderer {
             layout.button_height,
             layout.main_button_color,
         );
-        
+
         // Top highlight
         d.draw_rectangle(
             layout.button_x,
@@ -503,15 +528,8 @@ impl MenuRenderer {
             1.2,
             layout.text_shadow_color,
         );
-        
+
         // Main text
-        d.draw_text_ex(
-            title_font,
-            text,
-            text_pos,
-            28.0,
-            1.2,
-            layout.text_color,
-        );
+        d.draw_text_ex(title_font, text, text_pos, 28.0, 1.2, layout.text_color);
     }
-} 
+}

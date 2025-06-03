@@ -1,6 +1,6 @@
 use crate::game::Game;
-use crate::ui::animated_background::AnimatedBackground;
 use crate::ui::DrawingHelpers;
+use crate::ui::animated_background::AnimatedBackground;
 use crate::ui::drawing::SCREEN_WIDTH;
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
@@ -32,16 +32,7 @@ impl GameOver {
 
         // Draw final score
         let score_text = format!("Final Score: {}", game.score);
-        SharedRenderer::draw_text(
-            d,
-            font,
-            &score_text,
-            530.0,
-            330.0,
-            36.0,
-            1.5,
-            Color::WHITE,
-        );
+        SharedRenderer::draw_text(d, font, &score_text, 530.0, 330.0, 36.0, 1.5, Color::WHITE);
 
         // Draw initials input heading using title font
         SharedRenderer::draw_text(
@@ -106,7 +97,16 @@ impl OverlayState for GameOver {
         Self::render_content(d, game, has_controller, title_font, font);
     }
 
-    fn get_background_renderer() -> fn(&mut RaylibDrawHandle, &Game, bool, &Font, &Font, &Texture2D, &mut ParticleSystem, &mut AnimatedBackground) {
+    fn get_background_renderer() -> fn(
+        &mut RaylibDrawHandle,
+        &Game,
+        bool,
+        &Font,
+        &Font,
+        &Texture2D,
+        &mut ParticleSystem,
+        &mut AnimatedBackground,
+    ) {
         BackgroundRenderer::render_game_view
     }
 }
@@ -127,6 +127,15 @@ impl GameState for GameOver {
         particle_system: &mut ParticleSystem,
         animated_background: &mut AnimatedBackground,
     ) {
-        self.render_overlay(d, game, has_controller, title_font, font, card_atlas, particle_system, animated_background);
+        self.render_overlay(
+            d,
+            game,
+            has_controller,
+            title_font,
+            font,
+            card_atlas,
+            particle_system,
+            animated_background,
+        );
     }
-} 
+}
