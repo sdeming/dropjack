@@ -2,7 +2,7 @@
 pub mod board;
 pub mod difficulty;
 pub mod effects;
-pub mod game_state;
+pub mod states;
 pub mod playing_card;
 pub mod position;
 
@@ -17,7 +17,7 @@ use std::time::{Duration, Instant};
 
 // Re-export for backward compatibility
 pub use self::difficulty::Difficulty;
-pub use self::game_state::{GameOver, GameState, Paused, Playing, QuitConfirm, StartScreen};
+pub use self::states::{GameOver, GameState, Paused, Playing, QuitConfirm, StartScreen};
 
 const COMBINATION_DELAY: u64 = 300;
 
