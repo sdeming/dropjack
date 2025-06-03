@@ -1,4 +1,5 @@
-use crate::game::{Difficulty, Game};
+use crate::game::Game;
+use crate::models::Difficulty;
 use raylib::prelude::*;
 
 pub struct InputHandler {
@@ -41,7 +42,8 @@ impl InputHandler {
         has_controller: bool,
     ) {
         // Handle difficulty selection
-        if rl.is_key_pressed(KeyboardKey::KEY_LEFT) || rl.is_key_pressed(KeyboardKey::KEY_RIGHT)
+        if rl.is_key_pressed(KeyboardKey::KEY_LEFT)
+            || rl.is_key_pressed(KeyboardKey::KEY_RIGHT)
             || (has_controller
                 && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT)
                     || rl.is_gamepad_button_pressed(

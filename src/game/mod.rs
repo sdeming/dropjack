@@ -1,22 +1,13 @@
 // Sub-modules
 pub mod board;
-pub mod difficulty;
-pub mod effects;
 pub mod states;
-pub mod playing_card;
-pub mod position;
 
 use self::board::Board;
-use self::effects::DelayedDestruction;
-use self::playing_card::PlayingCard;
-use self::position::{Position, VisualPosition};
-use crate::models::{Card, Deck, HighScore};
+use crate::models::{Card, Deck, DelayedDestruction, Difficulty, HighScore, PlayingCard, Position, VisualPosition};
 use crate::database::Database;
 use std::path::Path;
 use std::time::{Duration, Instant};
 
-// Re-export for backward compatibility
-pub use self::difficulty::Difficulty;
 pub use self::states::{GameOver, GameState, Paused, Playing, QuitConfirm, StartScreen};
 
 const COMBINATION_DELAY: u64 = 300;

@@ -1,5 +1,4 @@
-use super::difficulty::Difficulty;
-use crate::models::{Card, FallingCard};
+use crate::models::{Card, Difficulty, FallingCard};
 
 // The game board
 pub struct Board {

@@ -3,7 +3,6 @@ mod atlas_card_renderer;
 pub mod drawing;
 mod drawing_helpers;
 pub mod input_handler;
-pub mod particle;
 pub mod particle_system;
 pub mod animated_background;
 

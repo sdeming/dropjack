@@ -243,7 +243,7 @@ impl DrawingHelpers {
         let button_height = 50; // Increased height
 
         // Easy button
-        let easy_selected = game.difficulty == crate::game::Difficulty::Easy;
+        let easy_selected = game.difficulty == crate::models::Difficulty::Easy;
         let easy_bg_color = if easy_selected {
             Color::new(0, 150, 0, 255) // Dark green background
         } else {
@@ -258,7 +258,7 @@ impl DrawingHelpers {
         d.draw_rectangle(base_x, button_y, button_width, button_height, easy_bg_color);
 
         // Hard button
-        let hard_selected = game.difficulty == crate::game::Difficulty::Hard;
+        let hard_selected = game.difficulty == crate::models::Difficulty::Hard;
         let hard_bg_color = if hard_selected {
             Color::new(150, 0, 0, 255) // Dark red background
         } else {

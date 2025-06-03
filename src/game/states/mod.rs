@@ -8,9 +8,7 @@ pub mod paused;
 pub mod game_over;
 pub mod quit_confirm;
 
-// Re-export the main trait and structs for easy access
 pub use game_state::GameState;
-
 pub use start_screen::StartScreen;
 pub use playing::Playing;
 pub use paused::Paused;

@@ -1,5 +1,4 @@
-use super::particle::Particle;
-use crate::models::{Card, CardColor};
+use crate::models::{Card, CardColor, Particle};
 use raylib::prelude::*;
 
 pub struct ParticleSystem {
