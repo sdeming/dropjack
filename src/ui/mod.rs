@@ -92,6 +92,9 @@ impl GameUI {
 
         // Initialize audio system
         let audio_system = AudioSystem::new(&mut rl, &thread);
+        
+        // Print audio status for debugging/information
+        audio_system.print_audio_status();
 
         GameUI {
             rl,
@@ -152,9 +155,9 @@ impl GameUI {
 
             // Process audio events
             let audio_events = game.take_pending_audio_events();
-            for _event in audio_events {
-                // For now, play the click sound for all events
-                self.audio_system.play_click(&mut self.rl);
+            for event in audio_events {
+                // Play the appropriate sound for each specific event
+                self.audio_system.play_event(event, &mut self.rl);
             }
 
             // Update particle system

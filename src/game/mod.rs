@@ -34,7 +34,7 @@ pub struct Game {
     pub pending_audio_events: Vec<AudioEvent>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub enum AudioEvent {
     DifficultyChange,
     StartGame,
@@ -48,6 +48,10 @@ pub enum AudioEvent {
     OpenQuitConfirmation,
     ReturnToGame,
     QuitGame,
+    // Card movement events
+    MoveLeft,
+    MoveRight,
+    SoftDrop,
 }
 
 impl Game {
@@ -258,6 +262,8 @@ impl Game {
                 let new_x = playing_card.position.x - 1;
                 if new_x >= 0 && self.board.is_cell_empty(new_x, playing_card.position.y) {
                     playing_card.target.x = new_x;
+                    // Add audio event for moving left
+                    self.add_audio_event(AudioEvent::MoveLeft);
                 }
             }
         }
@@ -272,6 +278,8 @@ impl Game {
                     && self.board.is_cell_empty(new_x, playing_card.position.y)
                 {
                     playing_card.target.x = new_x;
+                    // Add audio event for moving right
+                    self.add_audio_event(AudioEvent::MoveRight);
                 }
             }
         }
@@ -286,6 +294,8 @@ impl Game {
                 if !playing_card.is_falling {
                     playing_card.target.y = new_y;
                     playing_card.is_falling = true;
+                    // Add audio event for soft drop
+                    self.add_audio_event(AudioEvent::SoftDrop);
                 }
             } else if !playing_card.is_falling {
                 playing_card.visual_position.x =
