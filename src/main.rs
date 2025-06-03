@@ -2,6 +2,7 @@ mod cards;
 mod database;
 mod game;
 mod ui;
+mod models;
 
 use std::path::PathBuf;
 use std::fs;

@@ -1,4 +1,4 @@
-use crate::cards::Card;
+use crate::models::{Card, Suit, Value};
 use crate::ui::drawing::AtlasCardRenderer;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -66,26 +66,26 @@ impl AtlasCardRenderer {
     /// Get atlas position for a card (row, column)
     pub fn get_atlas_position(card: Card) -> (i32, i32) {
         let atlas_row = match card.suit {
-            crate::cards::Suit::Spades => 0,
-            crate::cards::Suit::Hearts => 1,
-            crate::cards::Suit::Diamonds => 2,
-            crate::cards::Suit::Clubs => 3,
+            Suit::Spades => 0,
+            Suit::Hearts => 1,
+            Suit::Diamonds => 2,
+            Suit::Clubs => 3,
         };
 
         let atlas_col = match card.value {
-            crate::cards::Value::Ace => 0,
-            crate::cards::Value::Two => 1,
-            crate::cards::Value::Three => 2,
-            crate::cards::Value::Four => 3,
-            crate::cards::Value::Five => 4,
-            crate::cards::Value::Six => 5,
-            crate::cards::Value::Seven => 6,
-            crate::cards::Value::Eight => 7,
-            crate::cards::Value::Nine => 8,
-            crate::cards::Value::Ten => 9,
-            crate::cards::Value::Jack => 10,
-            crate::cards::Value::Queen => 11,
-            crate::cards::Value::King => 12,
+            Value::Ace => 0,
+            Value::Two => 1,
+            Value::Three => 2,
+            Value::Four => 3,
+            Value::Five => 4,
+            Value::Six => 5,
+            Value::Seven => 6,
+            Value::Eight => 7,
+            Value::Nine => 8,
+            Value::Ten => 9,
+            Value::Jack => 10,
+            Value::Queen => 11,
+            Value::King => 12,
         };
 
         (atlas_row, atlas_col)

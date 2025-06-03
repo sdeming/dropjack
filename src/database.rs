@@ -1,13 +1,6 @@
 use rusqlite::{params, Connection, Result};
 use std::path::Path;
-
-pub struct HighScore {
-    pub id: Option<i64>,
-    pub player_initials: String,
-    pub score: i32,
-    pub difficulty: String,
-    pub date: String,
-}
+use crate::models::HighScore;
 
 pub struct Database {
     conn: Connection,

@@ -1,4 +1,4 @@
-use crate::cards::Card;
+use crate::models::Card;
 use crate::game::Game;
 use crate::ui::drawing::{AtlasCardRenderer, DrawingHelpers, SCREEN_HEIGHT, SCREEN_WIDTH, BOARD_OFFSET_X, BOARD_OFFSET_Y};
 use raylib::color::Color;

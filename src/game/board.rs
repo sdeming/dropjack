@@ -1,15 +1,5 @@
 use super::difficulty::Difficulty;
-use crate::cards::Card;
-
-// A card falling due to gravity
-#[derive(Debug, Clone)]
-pub struct FallingCard {
-    pub card: Card,
-    pub to_y: i32,
-    pub x: i32,
-    pub visual_y: f32,
-    pub is_animating: bool,
-}
+use crate::models::{Card, FallingCard};
 
 // The game board
 pub struct Board {

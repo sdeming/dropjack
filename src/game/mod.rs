@@ -10,8 +10,8 @@ use self::board::Board;
 use self::effects::DelayedDestruction;
 use self::playing_card::PlayingCard;
 use self::position::{Position, VisualPosition};
-use crate::cards::{Card, Deck};
-use crate::database::{Database, HighScore};
+use crate::models::{Card, Deck, HighScore};
+use crate::database::Database;
 use std::path::Path;
 use std::time::{Duration, Instant};
 

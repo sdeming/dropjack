@@ -1,4 +1,4 @@
-use crate::cards::{Card, Deck};
+use crate::models::{Card, Deck, Suit, Value};
 use crate::ui::drawing::AtlasCardRenderer;
 use crate::ui::drawing::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use raylib::prelude::*;
@@ -122,7 +122,7 @@ impl AnimatedBackground {
                     // If deck is empty, create a new shuffled deck
                     deck = Deck::new();
                     deck.shuffle();
-                    deck.draw().unwrap_or(Card::new(crate::cards::Suit::Spades, crate::cards::Value::Ace))
+                    deck.draw().unwrap_or(Card::new(Suit::Spades, Value::Ace))
                 };
 
                 // Base position in grid

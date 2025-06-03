@@ -1,13 +1,2 @@
-// Position of a card on the board
-#[derive(Debug, Clone, Copy)]
-pub struct Position {
-    pub x: i32,
-    pub y: i32,
-}
-
-// Visual position for smooth animations (in pixels)
-#[derive(Debug, Clone, Copy)]
-pub struct VisualPosition {
-    pub x: f32,
-    pub y: f32,
-}
+// Re-export position models from the models module for backward compatibility
+pub use crate::models::game::{Position, VisualPosition}; 
