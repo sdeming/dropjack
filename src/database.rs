@@ -61,11 +61,6 @@ impl Database {
             })
         })?;
 
-        let mut result = Vec::new();
-        for high_score in high_scores {
-            result.push(high_score?);
-        }
-
-        Ok(result)
+        high_scores.collect()
     }
 }

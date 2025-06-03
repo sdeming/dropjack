@@ -57,7 +57,7 @@ impl AnimatedCard {
 
         // Bounce off walls
         let half_size = self.size / 2.0;
-        
+
         // Left and right boundaries
         if self.position.x - half_size <= 0.0 {
             self.position.x = half_size;
@@ -79,9 +79,9 @@ impl AnimatedCard {
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, atlas: &Texture2D) {
         let tint = Color::new(255, 255, 255, self.alpha);
-        
+
         let (atlas_row, atlas_col) = AtlasCardRenderer::get_atlas_position(self.card);
-        
+
         AtlasCardRenderer::draw_card_with_options(
             d,
             atlas,
@@ -104,58 +104,54 @@ impl AnimatedBackground {
     pub fn new() -> Self {
         let mut deck = Deck::new();
         deck.shuffle();
-        
-        let mut cards = Vec::new();
-        
+
         // Create evenly distributed cards across the screen
         let cols = 3;
         let rows = 4;
         let total_cards = cols * rows;
-        
-        for i in 0..total_cards {
-            let col = i % cols;
-            let row = i / cols;
-            
-            // Get a card from the deck, reshuffle if needed
-            let card = if let Some(card) = deck.draw() {
-                card
-            } else {
-                // If deck is empty, create a new shuffled deck
-                deck = Deck::new();
-                deck.shuffle();
-                deck.draw().unwrap_or(Card::new(crate::cards::Suit::Spades, crate::cards::Value::Ace))
-            };
-            
-            // Base position in grid
-            let grid_x = (col as f32 + 0.5) * (SCREEN_WIDTH as f32 / cols as f32);
-            let grid_y = (row as f32 + 0.5) * (SCREEN_HEIGHT as f32 / rows as f32);
-            
-            // Add some randomness to avoid perfect grid
-            let randomness = 50.0;
-            let x = grid_x + (rand::random::<f32>() - 0.5) * randomness;
-            let y = grid_y + (rand::random::<f32>() - 0.5) * randomness;
-            
-            let mut animated_card = AnimatedCard::new(card);
-            animated_card.position = Vector2::new(
-                x.max(animated_card.size / 2.0).min(SCREEN_WIDTH as f32 - animated_card.size / 2.0),
-                y.max(animated_card.size / 2.0).min(SCREEN_HEIGHT as f32 - animated_card.size / 2.0),
-            );
-            
-            cards.push(animated_card);
-        }
-        
+
+        let cards = (0..total_cards)
+            .map(|i| {
+                let col = i % cols;
+                let row = i / cols;
+
+                // Get a card from the deck, reshuffle if needed
+                let card = if let Some(card) = deck.draw() {
+                    card
+                } else {
+                    // If deck is empty, create a new shuffled deck
+                    deck = Deck::new();
+                    deck.shuffle();
+                    deck.draw().unwrap_or(Card::new(crate::cards::Suit::Spades, crate::cards::Value::Ace))
+                };
+
+                // Base position in grid
+                let grid_x = (col as f32 + 0.5) * (SCREEN_WIDTH as f32 / cols as f32);
+                let grid_y = (row as f32 + 0.5) * (SCREEN_HEIGHT as f32 / rows as f32);
+
+                // Add some randomness to avoid perfect grid
+                let randomness = 50.0;
+                let x = grid_x + (rand::random::<f32>() - 0.5) * randomness;
+                let y = grid_y + (rand::random::<f32>() - 0.5) * randomness;
+
+                let mut animated_card = AnimatedCard::new(card);
+                animated_card.position = Vector2::new(
+                    x.max(animated_card.size / 2.0).min(SCREEN_WIDTH as f32 - animated_card.size / 2.0),
+                    y.max(animated_card.size / 2.0).min(SCREEN_HEIGHT as f32 - animated_card.size / 2.0),
+                );
+
+                animated_card
+            })
+            .collect();
+
         Self { cards }
     }
 
     pub fn update(&mut self, delta_time: f32) {
-        for card in &mut self.cards {
-            card.update(delta_time);
-        }
+        self.cards.iter_mut().for_each(|card| card.update(delta_time));
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, atlas: &Texture2D) {
-        for card in &self.cards {
-            card.draw(d, atlas);
-        }
+        self.cards.iter().for_each(|card| card.draw(d, atlas));
     }
 } 

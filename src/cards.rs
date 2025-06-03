@@ -133,12 +133,12 @@ pub struct Deck {
 
 impl Deck {
     pub fn new() -> Self {
-        let mut cards = Vec::with_capacity(52);
-        for suit in Suit::all() {
-            for value in Value::all() {
-                cards.push(Card::new(suit, value));
-            }
-        }
+        let cards = Suit::all()
+            .into_iter()
+            .flat_map(|suit| {
+                Value::all().into_iter().map(move |value| Card::new(suit, value))
+            })
+            .collect();
         Deck { cards }
     }
 

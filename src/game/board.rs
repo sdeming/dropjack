@@ -23,11 +23,9 @@ pub struct Board {
 
 impl Board {
     pub fn new(width: i32, height: i32, cell_size: i32) -> Self {
-        let mut grid = Vec::with_capacity(height as usize);
-        for _ in 0..height {
-            let row = vec![None; width as usize];
-            grid.push(row);
-        }
+        let grid = (0..height)
+            .map(|_| vec![None; width as usize])
+            .collect();
 
         Board {
             width,
@@ -101,12 +99,12 @@ impl Board {
                             .max_by_key(|combo| combo.len())
                         {
                             // Mark all positions in this combination as removed
-                            for &(px, py) in &best_combination {
+                            best_combination.iter().for_each(|&(px, py)| {
                                 if !all_removed_positions.contains(&(px, py)) {
                                     all_removed_positions.push((px, py));
                                 }
                                 global_visited[py as usize][px as usize] = true;
-                            }
+                            });
                         }
                     }
                 }
@@ -136,16 +134,20 @@ impl Board {
         let now = std::time::Instant::now();
         let mut removed_cards = Vec::new();
 
-        for y in 0..self.height {
-            for x in 0..self.width {
-                if let Some(removal_time) = self.marked_for_removal[y as usize][x as usize] {
-                    if now >= removal_time {
-                        // Time to remove this card
-                        if let Some(card) = self.remove_card(x, y) {
-                            removed_cards.push((x, y, card));
-                        }
-                        self.marked_for_removal[y as usize][x as usize] = None;
+        // Create a list of coordinates to check
+        let coordinates: Vec<(i32, i32)> = (0..self.height)
+            .flat_map(|y| (0..self.width).map(move |x| (x, y)))
+            .collect();
+
+        // Process each coordinate
+        for (x, y) in coordinates {
+            if let Some(removal_time) = self.marked_for_removal[y as usize][x as usize] {
+                if now >= removal_time {
+                    // Time to remove this card
+                    if let Some(card) = self.remove_card(x, y) {
+                        removed_cards.push((x, y, card));
                     }
+                    self.marked_for_removal[y as usize][x as usize] = None;
                 }
             }
         }
