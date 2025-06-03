@@ -5,7 +5,12 @@ mod drawing_helpers;
 pub mod input_handler;
 pub mod particle;
 pub mod particle_system;
+pub mod animated_background;
 
+// Re-export for easy access
+pub use drawing::DrawingHelpers;
+
+use self::animated_background::AnimatedBackground;
 use self::drawing::{BOARD_OFFSET_X, BOARD_OFFSET_Y, SCREEN_HEIGHT, SCREEN_WIDTH};
 use self::input_handler::InputHandler;
 use self::particle_system::ParticleSystem;
@@ -21,6 +26,35 @@ pub struct GameUI {
     particle_system: ParticleSystem,
     input_handler: InputHandler,
     last_frame_time: std::time::Instant,
+    fps_counter: FPSCounter,
+    animated_background: AnimatedBackground,
+}
+
+struct FPSCounter {
+    current_fps: f32,
+    last_update: std::time::Instant,
+}
+
+impl FPSCounter {
+    fn new() -> Self {
+        FPSCounter {
+            current_fps: 60.0,
+            last_update: std::time::Instant::now(),
+        }
+    }
+    
+    fn update(&mut self, delta_time: f32) {
+        // Update FPS calculation every 100ms for stable display
+        let now = std::time::Instant::now();
+        if now.duration_since(self.last_update).as_millis() > 100 {
+            self.current_fps = if delta_time > 0.0 { 1.0 / delta_time } else { 0.0 };
+            self.last_update = now;
+        }
+    }
+    
+    fn get_fps(&self) -> f32 {
+        self.current_fps
+    }
 }
 
 impl GameUI {
@@ -59,6 +93,8 @@ impl GameUI {
             particle_system: ParticleSystem::new(),
             input_handler: InputHandler::new(),
             last_frame_time: std::time::Instant::now(),
+            fps_counter: FPSCounter::new(),
+            animated_background: AnimatedBackground::new(),
         }
     }
 
@@ -69,6 +105,9 @@ impl GameUI {
             let delta_time = now.duration_since(self.last_frame_time).as_secs_f32();
             self.last_frame_time = now;
 
+            // Update FPS counter
+            self.fps_counter.update(delta_time);
+
             // Detect controller availability
             let has_controller = InputHandler::is_controller_connected(&self.rl);
 
@@ -78,6 +117,11 @@ impl GameUI {
             // Update game state (only when not paused)
             if !game.is_paused() {
                 game.update();
+            }
+
+            // Update animated background for title and quit screens
+            if game.is_start_screen() || game.is_quit_confirm() {
+                self.animated_background.update(delta_time);
             }
 
             // Check for explosions and trigger them
@@ -102,7 +146,8 @@ impl GameUI {
             // Render the game
             {
                 let mut d = self.rl.begin_drawing(&self.thread);
-                d.clear_background(Color::DARKGREEN);
+                // Use elegant gradient background instead of flat DARKGREEN
+                DrawingHelpers::draw_gradient_background(&mut d);
 
                 game.state.render(
                     &mut d,
@@ -110,8 +155,65 @@ impl GameUI {
                     has_controller,
                     &self.title_font,
                     &self.font,
-                    &self.card_atlas,
+                    self.card_atlas.as_ref().expect("Card atlas must be loaded!"),
                     &mut self.particle_system,
+                    &mut self.animated_background,
+                );
+
+                // Draw FPS counter inline
+                let fps = self.fps_counter.get_fps();
+                let fps_text = format!("FPS: {:.1}", fps);
+                
+                // Position in top-right corner
+                let text_x = SCREEN_WIDTH - 100;
+                let text_y = 10;
+                let font_size = 20.0;
+                
+                // Choose color based on FPS performance
+                let fps_color = if fps >= 55.0 {
+                    Color::new(0, 255, 0, 255)   // Green for good FPS
+                } else if fps >= 30.0 {
+                    Color::new(255, 255, 0, 255) // Yellow for medium FPS
+                } else {
+                    Color::new(255, 0, 0, 255)   // Red for poor FPS
+                };
+                
+                // Draw background panel for better visibility
+                d.draw_rectangle(
+                    text_x - 10,
+                    text_y - 5,
+                    95,
+                    30,
+                    Color::new(0, 0, 0, 150),
+                );
+                
+                // Draw border
+                d.draw_rectangle_lines(
+                    text_x - 10,
+                    text_y - 5,
+                    95,
+                    30,
+                    Color::new(255, 255, 255, 100),
+                );
+                
+                // Draw shadow
+                d.draw_text_ex(
+                    &self.font,
+                    &fps_text,
+                    Vector2::new((text_x + 1) as f32, (text_y + 1) as f32),
+                    font_size,
+                    1.0,
+                    Color::new(0, 0, 0, 150),
+                );
+                
+                // Draw main text
+                d.draw_text_ex(
+                    &self.font,
+                    &fps_text,
+                    Vector2::new(text_x as f32, text_y as f32),
+                    font_size,
+                    1.0,
+                    fps_color,
                 );
             }
         }
