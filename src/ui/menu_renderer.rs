@@ -406,11 +406,11 @@ impl MenuRenderer {
 
         // Draw the top 3 scores
         for (i, score) in game.high_scores.iter().enumerate().take(3) {
-            let y_offset = layout.base_y + 50 + i as i32 * layout.score_y_spacing;
+            let y_offset = layout.base_y + HIGH_SCORE_TITLE_Y_OFFSET + i as i32 * layout.score_y_spacing;
             let medal_color = layout.medal_colors.get(i).copied().unwrap_or(Color::WHITE);
 
             // Medal circle
-            let circle_center_y = y_offset + 15;
+            let circle_center_y = y_offset + HIGH_SCORE_CIRCLE_Y_OFFSET;
             d.draw_circle(
                 layout.circle_center_x,
                 circle_center_y,
@@ -472,7 +472,7 @@ impl MenuRenderer {
             d.draw_text_ex(
                 font,
                 "No high scores yet - be the first!",
-                Vector2::new((layout.base_x + 45) as f32, (layout.base_y + 60) as f32),
+                Vector2::new((layout.base_x + 45) as f32, (layout.base_y + HIGH_SCORE_TITLE_Y_OFFSET + 10) as f32),
                 MENU_HIGH_SCORE_NO_SCORES_SIZE,
                 MENU_HIGH_SCORE_NO_SCORES_SPACING,
                 layout.no_scores_color,

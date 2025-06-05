@@ -175,7 +175,7 @@ pub const PAUSE_QUIT_X: f32 = 505.0;
 
 // Instruction text colors
 pub const INSTRUCTION_CONTROLLER_COLOR: Color = Color::new(150, 200, 255, 255);
-pub const INSTRUCTION_KEYBOARD_COLOR: Color = Color::new(200, 200, 200, 255);
+pub const INSTRUCTION_KEYBOARD_COLOR: Color = Color::new(255, 255, 150, 255);
 pub const INSTRUCTION_QUIT_COLOR: Color = Color::new(255, 150, 150, 255);
 pub const INSTRUCTION_RESUME_COLOR: Color = Color::new(150, 255, 150, 255);
 

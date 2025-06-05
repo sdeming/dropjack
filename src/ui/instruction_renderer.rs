@@ -68,7 +68,7 @@ impl InstructionRenderer {
             false => [
                 (
                     "Left/Right Arrow: Move card",
-                    Color::new(255, 255, 150, 255),
+                    INSTRUCTION_KEYBOARD_COLOR,
                 ),
                 ("Down Arrow: Soft drop", INSTRUCTIONS_SOFT_DROP_COLOR),
                 ("Space: Hard drop", INSTRUCTIONS_HARD_DROP_COLOR),
