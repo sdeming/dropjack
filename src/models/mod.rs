@@ -12,3 +12,6 @@ pub use game::{
     DelayedDestruction, Difficulty, FallingCard, PlayingCard, Position, VisualPosition,
 };
 pub use ui::Particle;
+
+// Export builder patterns for easy access - only export what we actually use
+// (Removed unused wildcard imports and unused builder exports)

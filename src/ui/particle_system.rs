@@ -11,22 +11,50 @@ pub struct ParticleSystem {
     sparkle_velocities: Vec<Vector2>,
 }
 
-impl ParticleSystem {
+pub struct ParticleSystemBuilder {
+    particle_capacity: usize,
+    explosion_particle_count: usize,
+    sparkle_count: usize,
+    explosion_base_speeds: Vec<f32>,
+    explosion_colors: [Color; 4],
+}
+
+impl ParticleSystemBuilder {
     pub fn new() -> Self {
+        Self {
+            particle_capacity: 100,
+            explosion_particle_count: 35,
+            sparkle_count: 8,
+            explosion_base_speeds: vec![80.0, 60.0, 40.0, 100.0],
+            explosion_colors: [Color::WHITE, Color::YELLOW, Color::ORANGE, Color::LIGHTGRAY],
+        }
+    }
+
+    pub fn particle_capacity(mut self, capacity: usize) -> Self {
+        self.particle_capacity = capacity;
+        self
+    }
+
+    pub fn explosion_particle_count(mut self, count: usize) -> Self {
+        self.explosion_particle_count = count;
+        self
+    }
+
+    // Removed unused builder methods - sparkle_count, explosion_base_speeds, explosion_colors
+    // These can be added back if needed for future customization
+
+    pub fn build(self) -> ParticleSystem {
         // Pre-compute explosion velocity patterns for reuse
-        let total_particles = 35;
-        let explosion_velocities: Vec<Vector2> = (0..total_particles)
+        let explosion_velocities: Vec<Vector2> = (0..self.explosion_particle_count)
             .map(|i| {
                 let wave = i / 12;
-                let base_speed = match wave {
-                    0 => 80.0,
-                    1 => 60.0,
-                    2 => 40.0,
-                    _ => 100.0,
-                };
+                let base_speed = self.explosion_base_speeds
+                    .get(wave)
+                    .copied()
+                    .unwrap_or(100.0);
 
-                let angle = (i as f32 / (total_particles / 4) as f32) * 2.0 * std::f32::consts::PI;
-                let speed_variation = 0.5 + (i as f32 / total_particles as f32); // Deterministic instead of random
+                let angle = (i as f32 / (self.explosion_particle_count / 4) as f32) * 2.0 * std::f32::consts::PI;
+                let speed_variation = 0.5 + (i as f32 / self.explosion_particle_count as f32);
                 let final_speed = base_speed * speed_variation;
 
                 Vector2::new(angle.cos() * final_speed, angle.sin() * final_speed)
@@ -34,9 +62,9 @@ impl ParticleSystem {
             .collect();
 
         // Pre-compute sparkle velocities
-        let sparkle_velocities: Vec<Vector2> = (0..8)
+        let sparkle_velocities: Vec<Vector2> = (0..self.sparkle_count)
             .map(|i| {
-                let angle = (i as f32 / 8.0) * 2.0 * std::f32::consts::PI;
+                let angle = (i as f32 / self.sparkle_count as f32) * 2.0 * std::f32::consts::PI;
                 Vector2::new(
                     angle.cos() * 20.0,
                     angle.sin() * 20.0 - 30.0, // Upward bias
@@ -44,16 +72,19 @@ impl ParticleSystem {
             })
             .collect();
 
-        // Pre-define secondary colors
-        let explosion_colors = [Color::WHITE, Color::YELLOW, Color::ORANGE, Color::LIGHTGRAY];
-
-        Self {
+        ParticleSystem {
             particles: Vec::new(),
-            particle_pool: Vec::with_capacity(100), // Pre-allocate space for reuse
+            particle_pool: Vec::with_capacity(self.particle_capacity),
             explosion_velocities,
-            explosion_colors,
+            explosion_colors: self.explosion_colors,
             sparkle_velocities,
         }
+    }
+}
+
+impl ParticleSystem {
+    pub fn builder() -> ParticleSystemBuilder {
+        ParticleSystemBuilder::new()
     }
 
     pub fn add_card_explosion(
@@ -106,25 +137,20 @@ impl ParticleSystem {
                 position.y + ((i % 5) as f32 - 2.0) * size * 0.1,
             );
 
-            // Try to reuse particle from pool instead of allocating new one
-            let particle = if let Some(mut reused_particle) = self.particle_pool.pop() {
-                // Reset reused particle
-                reused_particle.position = particle_pos;
-                reused_particle.velocity = velocity;
-                reused_particle.color = color;
-                reused_particle.life_time = final_life_time;
-                reused_particle.max_life_time = final_life_time;
-                reused_particle.size = particle_size;
-                reused_particle.acceleration = Vector2::new(0.0, 200.0);
-                reused_particle.rotation = 0.0;
-                reused_particle.angular_velocity = ((i % 7) as f32 - 3.0) * 3.0; // Deterministic rotation
-                reused_particle
+            // Create particle using builder pattern for consistency
+            let particle = if let Some(_reused_particle) = self.particle_pool.pop() {
+                // Even when reusing, use builder for clean, consistent configuration
+                Particle::builder(particle_pos, velocity, color, final_life_time)
+                    .size(particle_size)
+                    .acceleration(Vector2::new(0.0, 200.0))
+                    .angular_velocity(((i % 7) as f32 - 3.0) * 3.0)
+                    .build()
             } else {
-                // Create new particle only if pool is empty
-                let mut particle = Particle::new(particle_pos, velocity, color, final_life_time);
-                particle.size = particle_size;
-                particle.angular_velocity = ((i % 7) as f32 - 3.0) * 3.0;
-                particle
+                // Create new particle using builder
+                Particle::builder(particle_pos, velocity, color, final_life_time)
+                    .size(particle_size)
+                    .angular_velocity(((i % 7) as f32 - 3.0) * 3.0)
+                    .build()
             };
 
             self.particles.push(particle);
@@ -138,25 +164,20 @@ impl ParticleSystem {
                 position.y + ((i % 3) as f32 - 1.0) * size * 0.25,
             );
 
-            // Try to reuse sparkle particle from pool
-            let sparkle = if let Some(mut reused_particle) = self.particle_pool.pop() {
-                // Reset reused particle for sparkle
-                reused_particle.position = sparkle_pos;
-                reused_particle.velocity = sparkle_velocity;
-                reused_particle.color = Color::YELLOW;
-                reused_particle.life_time = 0.6;
-                reused_particle.max_life_time = 0.6;
-                reused_particle.size = 1.5;
-                reused_particle.acceleration = Vector2::new(0.0, 150.0);
-                reused_particle.rotation = 0.0;
-                reused_particle.angular_velocity = i as f32 * 2.0 - 8.0;
-                reused_particle
+            // Create sparkle using builder pattern for consistency
+            let sparkle = if let Some(_reused_particle) = self.particle_pool.pop() {
+                // Even when reusing, use builder for clean, consistent configuration
+                Particle::builder(sparkle_pos, sparkle_velocity, Color::YELLOW, 0.6)
+                    .size(1.5)
+                    .acceleration(Vector2::new(0.0, 150.0))
+                    .angular_velocity(i as f32 * 2.0 - 8.0)
+                    .build()
             } else {
-                let mut sparkle = Particle::new(sparkle_pos, sparkle_velocity, Color::YELLOW, 0.6);
-                sparkle.size = 1.5;
-                sparkle.acceleration = Vector2::new(0.0, 150.0);
-                sparkle.angular_velocity = i as f32 * 2.0 - 8.0;
-                sparkle
+                Particle::builder(sparkle_pos, sparkle_velocity, Color::YELLOW, 0.6)
+                    .size(1.5)
+                    .acceleration(Vector2::new(0.0, 150.0))
+                    .angular_velocity(i as f32 * 2.0 - 8.0)
+                    .build()
             };
 
             self.particles.push(sparkle);

@@ -106,7 +106,10 @@ impl GameUI {
             font,
             title_font,
             card_atlas,
-            particle_system: ParticleSystem::new(),
+            particle_system: ParticleSystem::builder()
+                .particle_capacity(150)  // Increase capacity for more particles
+                .explosion_particle_count(40)  // Slightly more particles per explosion
+                .build(),
             input_handler: InputHandler::new(),
             last_frame_time: std::time::Instant::now(),
             fps_counter: FPSCounter::new(),
