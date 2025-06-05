@@ -1,7 +1,7 @@
 use crate::game::Game;
 use crate::ui::DrawingHelpers;
 use crate::ui::animated_background::AnimatedBackground;
-use crate::ui::drawing::SCREEN_WIDTH;
+use crate::ui::config::ScreenConfig;
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
 
@@ -49,7 +49,7 @@ impl GameOver {
         // Draw initials box
         let box_width = 200;
         let box_height = 60;
-        let box_x = SCREEN_WIDTH / 2 - box_width / 2;
+        let box_x = ScreenConfig::WIDTH / 2 - box_width / 2;
         let box_y = 440;
 
         SharedRenderer::draw_input_box(

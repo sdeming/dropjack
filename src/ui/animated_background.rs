@@ -1,7 +1,8 @@
 use crate::models::{Card, Deck, Suit, Value};
-use crate::ui::constants::*;
-use crate::ui::drawing::AtlasCardRenderer;
-use crate::ui::drawing::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::ui::atlas_card_renderer::AtlasCardRenderer;
+use crate::ui::atlas_card_renderer::CardRenderOptions;
+use crate::ui::config::AnimationConfig;
+use crate::ui::config::ScreenConfig;
 use raylib::prelude::*;
 
 #[derive(Clone)]
@@ -18,27 +19,28 @@ pub struct AnimatedCard {
 impl AnimatedCard {
     pub fn new(card: Card) -> Self {
         // Create random card with 10% larger size
-        let size = ANIMATION_CARD_SIZE;
+        let size = AnimationConfig::CARD_SIZE;
 
         // Random position across the screen
-        let x = rand::random::<f32>() * SCREEN_WIDTH as f32;
-        let y = rand::random::<f32>() * SCREEN_HEIGHT as f32;
+        let x = rand::random::<f32>() * ScreenConfig::WIDTH as f32;
+        let y = rand::random::<f32>() * ScreenConfig::HEIGHT as f32;
 
         // Random velocity - not too fast as specified
-        let velocity_x = (rand::random::<f32>() - 0.5) * ANIMATION_MAX_SPEED;
-        let velocity_y = (rand::random::<f32>() - 0.5) * ANIMATION_MAX_SPEED;
+        let velocity_x = (rand::random::<f32>() - 0.5) * AnimationConfig::MAX_SPEED;
+        let velocity_y = (rand::random::<f32>() - 0.5) * AnimationConfig::MAX_SPEED;
 
         // Random rotation and angular velocity - slight rotation
-        let angular_velocity = (rand::random::<f32>() - 0.5) * ANIMATION_ANGULAR_VELOCITY_RANGE;
+        let angular_velocity =
+            (rand::random::<f32>() - 0.5) * AnimationConfig::ANGULAR_VELOCITY_RANGE;
 
         Self {
             position: Vector2::new(x, y),
             velocity: Vector2::new(velocity_x, velocity_y),
-            rotation: rand::random::<f32>() * ANIMATION_ROTATION_MAX,
+            rotation: rand::random::<f32>() * AnimationConfig::ROTATION_MAX,
             angular_velocity,
             card,
             size,
-            alpha: ANIMATION_ALPHA,
+            alpha: AnimationConfig::ALPHA,
         }
     }
 
@@ -49,10 +51,10 @@ impl AnimatedCard {
 
         // Update rotation
         self.rotation += self.angular_velocity * delta_time;
-        if self.rotation > ANIMATION_ROTATION_MAX {
-            self.rotation -= ANIMATION_ROTATION_MAX;
+        if self.rotation > AnimationConfig::ROTATION_MAX {
+            self.rotation -= AnimationConfig::ROTATION_MAX;
         } else if self.rotation < 0.0 {
-            self.rotation += ANIMATION_ROTATION_MAX;
+            self.rotation += AnimationConfig::ROTATION_MAX;
         }
 
         // Bounce off walls
@@ -62,8 +64,8 @@ impl AnimatedCard {
         if self.position.x - half_size <= 0.0 {
             self.position.x = half_size;
             self.velocity.x = -self.velocity.x;
-        } else if self.position.x + half_size >= SCREEN_WIDTH as f32 {
-            self.position.x = SCREEN_WIDTH as f32 - half_size;
+        } else if self.position.x + half_size >= ScreenConfig::WIDTH as f32 {
+            self.position.x = ScreenConfig::WIDTH as f32 - half_size;
             self.velocity.x = -self.velocity.x;
         }
 
@@ -71,25 +73,23 @@ impl AnimatedCard {
         if self.position.y - half_size <= 0.0 {
             self.position.y = half_size;
             self.velocity.y = -self.velocity.y;
-        } else if self.position.y + half_size >= SCREEN_HEIGHT as f32 {
-            self.position.y = SCREEN_HEIGHT as f32 - half_size;
+        } else if self.position.y + half_size >= ScreenConfig::HEIGHT as f32 {
+            self.position.y = ScreenConfig::HEIGHT as f32 - half_size;
             self.velocity.y = -self.velocity.y;
         }
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle, atlas: &Texture2D) {
         let tint = Color::new(255, 255, 255, self.alpha);
-
-        AtlasCardRenderer::draw_card_with_options(
-            d,
-            atlas,
-            self.card,
+        let options = CardRenderOptions::new(
             (self.position.x - self.size / 2.0) as i32,
             (self.position.y - self.size / 2.0) as i32,
             self.size as i32,
-            self.rotation,
-            tint,
-        );
+        )
+        .with_rotation(self.rotation)
+        .with_tint(tint);
+
+        AtlasCardRenderer::draw_card_with_options(d, atlas, self.card, options);
     }
 }
 
@@ -103,8 +103,8 @@ impl AnimatedBackground {
         deck.shuffle();
 
         // Create evenly distributed cards across the screen
-        let cols = ANIMATION_GRID_COLS;
-        let rows = ANIMATION_GRID_ROWS;
+        let cols = AnimationConfig::GRID_COLS;
+        let rows = AnimationConfig::GRID_ROWS;
         let total_cards = cols * rows;
 
         let cards = (0..total_cards)
@@ -123,19 +123,19 @@ impl AnimatedBackground {
                 };
 
                 // Base position in grid
-                let grid_x = (col as f32 + 0.5) * (SCREEN_WIDTH as f32 / cols as f32);
-                let grid_y = (row as f32 + 0.5) * (SCREEN_HEIGHT as f32 / rows as f32);
+                let grid_x = (col as f32 + 0.5) * (ScreenConfig::WIDTH as f32 / cols as f32);
+                let grid_y = (row as f32 + 0.5) * (ScreenConfig::HEIGHT as f32 / rows as f32);
 
                 // Add some randomness to avoid perfect grid
-                let x = grid_x + (rand::random::<f32>() - 0.5) * ANIMATION_RANDOMNESS;
-                let y = grid_y + (rand::random::<f32>() - 0.5) * ANIMATION_RANDOMNESS;
+                let x = grid_x + (rand::random::<f32>() - 0.5) * AnimationConfig::RANDOMNESS;
+                let y = grid_y + (rand::random::<f32>() - 0.5) * AnimationConfig::RANDOMNESS;
 
                 let mut animated_card = AnimatedCard::new(card);
                 animated_card.position = Vector2::new(
                     x.max(animated_card.size / 2.0)
-                        .min(SCREEN_WIDTH as f32 - animated_card.size / 2.0),
+                        .min(ScreenConfig::WIDTH as f32 - animated_card.size / 2.0),
                     y.max(animated_card.size / 2.0)
-                        .min(SCREEN_HEIGHT as f32 - animated_card.size / 2.0),
+                        .min(ScreenConfig::HEIGHT as f32 - animated_card.size / 2.0),
                 );
 
                 animated_card

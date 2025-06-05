@@ -1,9 +1,8 @@
 use crate::game::Game;
 use crate::ui::DrawingHelpers;
 use crate::ui::animated_background::AnimatedBackground;
-use crate::ui::drawing::{
-    BOARD_OFFSET_X, BOARD_OFFSET_Y, INFO_PANEL_WIDTH, INFO_PANEL_X, SCREEN_HEIGHT,
-};
+use crate::ui::config::ScreenConfig;
+use crate::ui::config::{BoardConfig, InfoPanelConfig};
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
 
@@ -100,8 +99,8 @@ impl Playing {
                                 d,
                                 card_atlas,
                                 card,
-                                BOARD_OFFSET_X + x * game.board.cell_size,
-                                BOARD_OFFSET_Y + y * game.board.cell_size,
+                                BoardConfig::OFFSET_X + x * game.board.cell_size,
+                                BoardConfig::OFFSET_Y + y * game.board.cell_size,
                                 game.board.cell_size,
                             );
                         }
@@ -116,8 +115,8 @@ impl Playing {
                         d,
                         card_atlas,
                         falling_card.card,
-                        BOARD_OFFSET_X + falling_card.x * game.board.cell_size,
-                        BOARD_OFFSET_Y + falling_card.visual_y as i32,
+                        BoardConfig::OFFSET_X + falling_card.x * game.board.cell_size,
+                        BoardConfig::OFFSET_Y + falling_card.visual_y as i32,
                         game.board.cell_size,
                     );
                 }
@@ -130,8 +129,8 @@ impl Playing {
                 d,
                 card_atlas,
                 playing_card.card,
-                BOARD_OFFSET_X + playing_card.visual_position.x as i32,
-                BOARD_OFFSET_Y + playing_card.visual_position.y as i32,
+                BoardConfig::OFFSET_X + playing_card.visual_position.x as i32,
+                BoardConfig::OFFSET_Y + playing_card.visual_position.y as i32,
                 game.board.cell_size,
             );
         }
@@ -143,8 +142,8 @@ impl Playing {
                     d,
                     card_atlas,
                     hard_drop_card.card,
-                    BOARD_OFFSET_X + hard_drop_card.visual_position.x as i32,
-                    BOARD_OFFSET_Y + hard_drop_card.visual_position.y as i32,
+                    BoardConfig::OFFSET_X + hard_drop_card.visual_position.x as i32,
+                    BoardConfig::OFFSET_Y + hard_drop_card.visual_position.y as i32,
                     game.board.cell_size,
                 );
             }
@@ -160,14 +159,14 @@ impl Playing {
         card_atlas: &Texture2D,
     ) {
         // Enhanced panel background with sophisticated styling and depth
-        let panel_height = SCREEN_HEIGHT - 2 * BOARD_OFFSET_Y;
-        let panel_center_y = BOARD_OFFSET_Y + panel_height / 2;
+        let panel_height = ScreenConfig::HEIGHT - 2 * BoardConfig::OFFSET_Y;
+        let panel_center_y = BoardConfig::OFFSET_Y + panel_height / 2;
 
         // Outermost shadow for dramatic depth
         d.draw_rectangle(
-            INFO_PANEL_X - 8,
-            BOARD_OFFSET_Y - 8,
-            INFO_PANEL_WIDTH + 16,
+            InfoPanelConfig::X - 8,
+            BoardConfig::OFFSET_Y - 8,
+            InfoPanelConfig::WIDTH + 16,
             panel_height + 16,
             Color::new(0, 0, 0, 120),
         );
@@ -175,18 +174,18 @@ impl Playing {
         // Multiple frame layers for rich depth
         // Outer dark wood frame matching the board
         d.draw_rectangle(
-            INFO_PANEL_X - 6,
-            BOARD_OFFSET_Y - 6,
-            INFO_PANEL_WIDTH + 12,
+            InfoPanelConfig::X - 6,
+            BoardConfig::OFFSET_Y - 6,
+            InfoPanelConfig::WIDTH + 12,
             panel_height + 12,
             Color::new(80, 40, 20, 255),
         );
 
         // Middle wood frame with grain effect
         d.draw_rectangle(
-            INFO_PANEL_X - 4,
-            BOARD_OFFSET_Y - 4,
-            INFO_PANEL_WIDTH + 8,
+            InfoPanelConfig::X - 4,
+            BoardConfig::OFFSET_Y - 4,
+            InfoPanelConfig::WIDTH + 8,
             panel_height + 8,
             Color::new(139, 69, 19, 255),
         );
@@ -195,42 +194,43 @@ impl Playing {
         for i in 0..6 {
             let grain_offset = i * 2;
             d.draw_line(
-                INFO_PANEL_X - 4 + grain_offset,
-                BOARD_OFFSET_Y - 4,
-                INFO_PANEL_X - 4 + grain_offset,
-                BOARD_OFFSET_Y + panel_height + 4,
+                InfoPanelConfig::X - 4 + grain_offset,
+                BoardConfig::OFFSET_Y - 4,
+                InfoPanelConfig::X - 4 + grain_offset,
+                BoardConfig::OFFSET_Y + panel_height + 4,
                 Color::new(110, 55, 15, 80),
             );
         }
 
         // Inner decorative border
         d.draw_rectangle(
-            INFO_PANEL_X - 2,
-            BOARD_OFFSET_Y - 2,
-            INFO_PANEL_WIDTH + 4,
+            InfoPanelConfig::X - 2,
+            BoardConfig::OFFSET_Y - 2,
+            InfoPanelConfig::WIDTH + 4,
             panel_height + 4,
             Color::new(210, 180, 140, 255),
         );
 
         // Create a sophisticated radial gradient background for the panel - OPTIMIZED
-        let panel_center_x = INFO_PANEL_X + INFO_PANEL_WIDTH / 2;
-        let max_distance =
-            ((INFO_PANEL_WIDTH * INFO_PANEL_WIDTH + panel_height * panel_height) as f32).sqrt()
-                / 2.0;
+        let panel_center_x = InfoPanelConfig::X + InfoPanelConfig::WIDTH / 2;
+        let max_distance = ((InfoPanelConfig::WIDTH * InfoPanelConfig::WIDTH
+            + panel_height * panel_height) as f32)
+            .sqrt()
+            / 2.0;
 
         // Use efficient overlapping rectangles for smooth gradient - NO GAPS
         let gradient_steps = 20; // Reduced for performance but still smooth
-        let step_width = (INFO_PANEL_WIDTH as f32 / gradient_steps as f32).ceil() as i32;
+        let step_width = (InfoPanelConfig::WIDTH as f32 / gradient_steps as f32).ceil() as i32;
         let step_height = (panel_height as f32 / gradient_steps as f32).ceil() as i32;
 
         for y in 0..gradient_steps {
             for x in 0..gradient_steps {
-                let rect_x = INFO_PANEL_X + x * step_width;
-                let rect_y = BOARD_OFFSET_Y + y * step_height;
+                let rect_x = InfoPanelConfig::X + x * step_width;
+                let rect_y = BoardConfig::OFFSET_Y + y * step_height;
 
                 // Make rectangles overlap slightly to eliminate gaps
                 let rect_width = if x == gradient_steps - 1 {
-                    INFO_PANEL_WIDTH - x * step_width + 2
+                    InfoPanelConfig::WIDTH - x * step_width + 2
                 } else {
                     step_width + 2
                 };
@@ -243,7 +243,7 @@ impl Playing {
                 // Calculate the center of this rectangle for distance calculation
                 let center_x_offset = (rect_x + rect_width / 2) - panel_center_x;
                 let center_y_offset =
-                    (rect_y + rect_height / 2) - (BOARD_OFFSET_Y + panel_height / 2);
+                    (rect_y + rect_height / 2) - (BoardConfig::OFFSET_Y + panel_height / 2);
                 let distance = ((center_x_offset * center_x_offset
                     + center_y_offset * center_y_offset) as f32)
                     .sqrt();
@@ -270,8 +270,8 @@ impl Playing {
 
         // Add subtle fabric-like texture to match the board
         for i in 0..80 {
-            let x = INFO_PANEL_X + (i * 61) % INFO_PANEL_WIDTH;
-            let y = BOARD_OFFSET_Y + (i * 97) % panel_height;
+            let x = InfoPanelConfig::X + (i * 61) % InfoPanelConfig::WIDTH;
+            let y = BoardConfig::OFFSET_Y + (i * 97) % panel_height;
 
             // Distance from the center affects texture visibility
             let dx = x - panel_center_x;
@@ -289,8 +289,8 @@ impl Playing {
 
         // Enhanced panel title with multiple shadow layers and glow effect
         let title_text = "DropJack";
-        let title_x = INFO_PANEL_X + 30;
-        let title_y = BOARD_OFFSET_Y + 30;
+        let title_x = InfoPanelConfig::X + 30;
+        let title_y = BoardConfig::OFFSET_Y + 30;
 
         // Outer glow effect
         for glow_layer in 1..=4 {
@@ -357,8 +357,8 @@ impl Playing {
 
         // Enhanced difficulty display with styling
         let difficulty_text = format!("Difficulty: {}", game.difficulty);
-        let diff_x = INFO_PANEL_X + 30;
-        let diff_y = BOARD_OFFSET_Y + 90;
+        let diff_x = InfoPanelConfig::X + 30;
+        let diff_y = BoardConfig::OFFSET_Y + 90;
 
         // Multiple shadow layers
         d.draw_text_ex(
@@ -388,8 +388,8 @@ impl Playing {
 
         // Enhanced score display with a glow effect
         let score_text = format!("Score: {}", game.score);
-        let score_x = INFO_PANEL_X + 30;
-        let score_y = BOARD_OFFSET_Y + 130;
+        let score_x = InfoPanelConfig::X + 30;
+        let score_y = BoardConfig::OFFSET_Y + 130;
 
         // Glow effect for the score
         for glow in 1..=3 {
@@ -426,8 +426,8 @@ impl Playing {
 
         // Enhanced next card preview with a sophisticated frame
         let next_card_text = "Next Card:";
-        let next_x = INFO_PANEL_X + 30;
-        let next_y = BOARD_OFFSET_Y + 190;
+        let next_x = InfoPanelConfig::X + 30;
+        let next_y = BoardConfig::OFFSET_Y + 190;
 
         // Shadow and text
         d.draw_text_ex(
@@ -449,8 +449,8 @@ impl Playing {
 
         if let Some(card) = game.next_card {
             // Enhanced decorative frame around the next card with lighting effects
-            let card_x = INFO_PANEL_X + 60;
-            let card_y = BOARD_OFFSET_Y + 230;
+            let card_x = InfoPanelConfig::X + 60;
+            let card_y = BoardConfig::OFFSET_Y + 230;
             let frame_size = game.board.cell_size + 16;
 
             // Outer shadow
@@ -509,8 +509,8 @@ impl Playing {
             d,
             title_font,
             font,
-            INFO_PANEL_X,
-            BOARD_OFFSET_Y,
+            InfoPanelConfig::X,
+            BoardConfig::OFFSET_Y,
             has_controller,
         );
     }

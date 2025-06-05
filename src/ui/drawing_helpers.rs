@@ -5,13 +5,14 @@ use crate::ui::card_renderer::CardRenderer;
 use crate::ui::instruction_renderer::InstructionRenderer;
 use crate::ui::menu_renderer::MenuRenderer;
 use crate::ui::text_renderer::TextRenderer;
+
 use raylib::drawing::RaylibDrawHandle;
 use raylib::prelude::{Font, Texture2D};
 
 pub struct DrawingHelpers;
 
 impl DrawingHelpers {
-    // Re-export card rendering functions
+    // Re-export card rendering functions with improved API
     pub fn draw_card_inline(
         d: &mut RaylibDrawHandle,
         atlas: &Texture2D,

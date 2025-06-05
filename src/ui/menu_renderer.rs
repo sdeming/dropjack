@@ -1,5 +1,5 @@
 use crate::game::Game;
-use crate::ui::constants::*;
+use crate::ui::config::{DifficultyConfig, HighScoreConfig, MenuConfig, StartButtonConfig};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -29,11 +29,11 @@ struct PanelLayout {
 
 impl PanelLayout {
     fn new() -> Self {
-        let panel_x = MENU_PANEL_X;
-        let panel_y = MENU_PANEL_Y;
-        let panel_width = MENU_PANEL_WIDTH;
-        let panel_height = MENU_PANEL_HEIGHT;
-        let corner_size = MENU_CORNER_SIZE;
+        let panel_x = MenuConfig::PANEL_X;
+        let panel_y = MenuConfig::PANEL_Y;
+        let panel_width = MenuConfig::PANEL_WIDTH;
+        let panel_height = MenuConfig::PANEL_HEIGHT;
+        let corner_size = MenuConfig::CORNER_SIZE;
 
         let corner_positions = [
             (panel_x, panel_y),                              // Top-left
@@ -52,12 +52,12 @@ impl PanelLayout {
             panel_height,
             corner_size,
             corner_positions,
-            shadow_offset: (MENU_SHADOW_OFFSET_X, MENU_SHADOW_OFFSET_Y),
-            panel_bg_color: MENU_PANEL_BG_COLOR,
-            panel_border_color: MENU_PANEL_BORDER_COLOR,
-            panel_border_glow_color: MENU_PANEL_BORDER_GLOW_COLOR,
-            corner_color: MENU_CORNER_COLOR,
-            shadow_color: MENU_SHADOW_COLOR,
+            shadow_offset: (MenuConfig::SHADOW_OFFSET_X, MenuConfig::SHADOW_OFFSET_Y),
+            panel_bg_color: MenuConfig::PANEL_BG_COLOR,
+            panel_border_color: MenuConfig::PANEL_BORDER_COLOR,
+            panel_border_glow_color: MenuConfig::PANEL_BORDER_GLOW_COLOR,
+            corner_color: MenuConfig::CORNER_COLOR,
+            shadow_color: MenuConfig::SHADOW_COLOR,
         }
     }
 }
@@ -87,12 +87,12 @@ struct DifficultyLayout {
 
 impl DifficultyLayout {
     fn new() -> Self {
-        let base_x = DIFFICULTY_BASE_X;
-        let base_y = DIFFICULTY_BASE_Y;
-        let button_y = base_y + DIFFICULTY_BUTTON_Y_OFFSET;
-        let button_width = DIFFICULTY_BUTTON_WIDTH;
-        let button_height = DIFFICULTY_BUTTON_HEIGHT;
-        let hard_button_x = base_x + DIFFICULTY_HARD_BUTTON_X_OFFSET;
+        let base_x = DifficultyConfig::BASE_X;
+        let base_y = DifficultyConfig::BASE_Y;
+        let button_y = base_y + DifficultyConfig::BUTTON_Y_OFFSET;
+        let button_width = DifficultyConfig::BUTTON_WIDTH;
+        let button_height = DifficultyConfig::BUTTON_HEIGHT;
+        let hard_button_x = base_x + DifficultyConfig::HARD_BUTTON_X_OFFSET;
 
         Self {
             base_x,
@@ -102,25 +102,25 @@ impl DifficultyLayout {
             button_height,
             hard_button_x,
             easy_text_pos: Vector2::new(
-                (base_x + DIFFICULTY_EASY_TEXT_X_OFFSET) as f32,
-                (button_y + DIFFICULTY_EASY_TEXT_Y_OFFSET) as f32,
+                (base_x + DifficultyConfig::EASY_TEXT_X_OFFSET) as f32,
+                (button_y + DifficultyConfig::EASY_TEXT_Y_OFFSET) as f32,
             ),
             hard_text_pos: Vector2::new(
-                (hard_button_x + DIFFICULTY_HARD_TEXT_X_OFFSET) as f32,
-                (button_y + DIFFICULTY_HARD_TEXT_Y_OFFSET) as f32,
+                (hard_button_x + DifficultyConfig::HARD_TEXT_X_OFFSET) as f32,
+                (button_y + DifficultyConfig::HARD_TEXT_Y_OFFSET) as f32,
             ),
             instruction_pos: Vector2::new(
-                (base_x + DIFFICULTY_INSTRUCTION_X_OFFSET) as f32,
-                (button_y + DIFFICULTY_INSTRUCTION_Y_OFFSET) as f32,
+                (base_x + DifficultyConfig::INSTRUCTION_X_OFFSET) as f32,
+                (button_y + DifficultyConfig::INSTRUCTION_Y_OFFSET) as f32,
             ),
-            easy_selected_bg: DIFFICULTY_EASY_SELECTED_BG,
-            easy_unselected_bg: DIFFICULTY_EASY_UNSELECTED_BG,
-            hard_selected_bg: DIFFICULTY_HARD_SELECTED_BG,
-            hard_unselected_bg: DIFFICULTY_HARD_UNSELECTED_BG,
-            selected_text_color: DIFFICULTY_SELECTED_TEXT_COLOR,
-            unselected_text_color: DIFFICULTY_UNSELECTED_TEXT_COLOR,
-            controller_instruction_color: DIFFICULTY_CONTROLLER_INSTRUCTION_COLOR,
-            keyboard_instruction_color: DIFFICULTY_KEYBOARD_INSTRUCTION_COLOR,
+            easy_selected_bg: DifficultyConfig::EASY_SELECTED_BG,
+            easy_unselected_bg: DifficultyConfig::EASY_UNSELECTED_BG,
+            hard_selected_bg: DifficultyConfig::HARD_SELECTED_BG,
+            hard_unselected_bg: DifficultyConfig::HARD_UNSELECTED_BG,
+            selected_text_color: DifficultyConfig::SELECTED_TEXT_COLOR,
+            unselected_text_color: DifficultyConfig::UNSELECTED_TEXT_COLOR,
+            controller_instruction_color: DifficultyConfig::CONTROLLER_INSTRUCTION_COLOR,
+            keyboard_instruction_color: DifficultyConfig::KEYBOARD_INSTRUCTION_COLOR,
         }
     }
 }
@@ -145,26 +145,26 @@ struct HighScoreLayout {
 
 impl HighScoreLayout {
     fn new() -> Self {
-        let base_x = HIGH_SCORE_BASE_X;
-        let base_y = HIGH_SCORE_BASE_Y;
+        let base_x = HighScoreConfig::BASE_X;
+        let base_y = HighScoreConfig::BASE_Y;
 
         Self {
             base_x,
             base_y,
-            score_y_spacing: HIGH_SCORE_Y_SPACING,
-            circle_center_x: base_x + HIGH_SCORE_CIRCLE_CENTER_X_OFFSET,
-            circle_radius: HIGH_SCORE_CIRCLE_RADIUS,
+            score_y_spacing: HighScoreConfig::Y_SPACING,
+            circle_center_x: base_x + HighScoreConfig::CIRCLE_CENTER_X_OFFSET,
+            circle_radius: HighScoreConfig::CIRCLE_RADIUS,
             medal_colors: [
-                HIGH_SCORE_GOLD_COLOR,
-                HIGH_SCORE_SILVER_COLOR,
-                HIGH_SCORE_BRONZE_COLOR,
+                HighScoreConfig::GOLD_COLOR,
+                HighScoreConfig::SILVER_COLOR,
+                HighScoreConfig::BRONZE_COLOR,
             ],
-            title_color: HIGH_SCORE_TITLE_COLOR,
-            score_text_color: HIGH_SCORE_TEXT_COLOR,
-            no_scores_color: HIGH_SCORE_NO_SCORES_COLOR,
-            easy_color: HIGH_SCORE_EASY_COLOR,
-            hard_color: HIGH_SCORE_HARD_COLOR,
-            circle_outline_color: HIGH_SCORE_CIRCLE_OUTLINE_COLOR,
+            title_color: HighScoreConfig::TITLE_COLOR,
+            score_text_color: HighScoreConfig::TEXT_COLOR,
+            no_scores_color: HighScoreConfig::NO_SCORES_COLOR,
+            easy_color: HighScoreConfig::EASY_COLOR,
+            hard_color: HighScoreConfig::HARD_COLOR,
+            circle_outline_color: HighScoreConfig::CIRCLE_OUTLINE_COLOR,
         }
     }
 }
@@ -191,15 +191,16 @@ struct StartButtonLayout {
 
 impl StartButtonLayout {
     fn new() -> Self {
-        let button_x = START_BUTTON_X;
-        let button_y = START_BUTTON_Y;
-        let button_width = START_BUTTON_WIDTH;
-        let button_height = START_BUTTON_HEIGHT;
+        let button_x = StartButtonConfig::X;
+        let button_y = StartButtonConfig::Y;
+        let button_width = StartButtonConfig::WIDTH;
+        let button_height = StartButtonConfig::HEIGHT;
 
-        let glow_configs: Vec<(i32, u8)> = (0..START_BUTTON_GLOW_LAYERS)
+        let glow_configs: Vec<(i32, u8)> = (0..StartButtonConfig::GLOW_LAYERS)
             .map(|i| {
-                let glow_size = (i + 1) * START_BUTTON_GLOW_SIZE_MULTIPLIER;
-                let alpha = START_BUTTON_GLOW_ALPHA_BASE - i * START_BUTTON_GLOW_ALPHA_DECREMENT;
+                let glow_size = (i + 1) * StartButtonConfig::GLOW_SIZE_MULTIPLIER;
+                let alpha = StartButtonConfig::GLOW_ALPHA_BASE
+                    - i * StartButtonConfig::GLOW_ALPHA_DECREMENT;
                 (glow_size, alpha as u8)
             })
             .collect();
@@ -211,19 +212,19 @@ impl StartButtonLayout {
             button_height,
             glow_configs,
             controller_text_pos: Vector2::new(
-                (button_x + START_BUTTON_CONTROLLER_TEXT_X_OFFSET) as f32,
-                (button_y + START_BUTTON_CONTROLLER_TEXT_Y_OFFSET) as f32,
+                (button_x + StartButtonConfig::CONTROLLER_TEXT_X_OFFSET) as f32,
+                (button_y + StartButtonConfig::CONTROLLER_TEXT_Y_OFFSET) as f32,
             ),
             keyboard_text_pos: Vector2::new(
-                (button_x + START_BUTTON_KEYBOARD_TEXT_X_OFFSET) as f32,
-                (button_y + START_BUTTON_KEYBOARD_TEXT_Y_OFFSET) as f32,
+                (button_x + StartButtonConfig::KEYBOARD_TEXT_X_OFFSET) as f32,
+                (button_y + StartButtonConfig::KEYBOARD_TEXT_Y_OFFSET) as f32,
             ),
-            main_button_color: START_BUTTON_MAIN_COLOR,
-            highlight_color: START_BUTTON_HIGHLIGHT_COLOR,
-            border_color: START_BUTTON_BORDER_COLOR,
-            outer_border_color: START_BUTTON_OUTER_BORDER_COLOR,
-            text_shadow_color: START_BUTTON_TEXT_SHADOW_COLOR,
-            text_color: START_BUTTON_TEXT_COLOR,
+            main_button_color: StartButtonConfig::MAIN_COLOR,
+            highlight_color: StartButtonConfig::HIGHLIGHT_COLOR,
+            border_color: StartButtonConfig::BORDER_COLOR,
+            outer_border_color: StartButtonConfig::OUTER_BORDER_COLOR,
+            text_shadow_color: StartButtonConfig::TEXT_SHADOW_COLOR,
+            text_color: StartButtonConfig::TEXT_COLOR,
         }
     }
 }
@@ -298,9 +299,9 @@ impl MenuRenderer {
             title_font,
             "Difficulty",
             Vector2::new(layout.base_x as f32, layout.base_y as f32),
-            MENU_DIFFICULTY_TITLE_SIZE,
-            MENU_DIFFICULTY_TITLE_SPACING,
-            MENU_DIFFICULTY_TITLE_COLOR,
+            DifficultyConfig::TITLE_SIZE,
+            DifficultyConfig::TITLE_SPACING,
+            DifficultyConfig::TITLE_COLOR,
         );
 
         // Easy button
@@ -350,16 +351,16 @@ impl MenuRenderer {
             font,
             "Easy",
             layout.easy_text_pos,
-            MENU_DIFFICULTY_BUTTON_TEXT_SIZE,
-            MENU_DIFFICULTY_BUTTON_TEXT_SPACING,
+            DifficultyConfig::BUTTON_TEXT_SIZE,
+            DifficultyConfig::BUTTON_TEXT_SPACING,
             easy_text_color,
         );
         d.draw_text_ex(
             font,
             "Hard",
             layout.hard_text_pos,
-            MENU_DIFFICULTY_BUTTON_TEXT_SIZE,
-            MENU_DIFFICULTY_BUTTON_TEXT_SPACING,
+            DifficultyConfig::BUTTON_TEXT_SIZE,
+            DifficultyConfig::BUTTON_TEXT_SPACING,
             hard_text_color,
         );
 
@@ -380,8 +381,8 @@ impl MenuRenderer {
             font,
             instruction_text,
             layout.instruction_pos,
-            MENU_DIFFICULTY_INSTRUCTION_SIZE,
-            MENU_DIFFICULTY_INSTRUCTION_SPACING,
+            DifficultyConfig::INSTRUCTION_SIZE,
+            DifficultyConfig::INSTRUCTION_SPACING,
             instruction_color,
         );
     }
@@ -399,18 +400,19 @@ impl MenuRenderer {
             title_font,
             "High Scores",
             Vector2::new(layout.base_x as f32, layout.base_y as f32),
-            MENU_HIGH_SCORE_TITLE_SIZE,
-            MENU_HIGH_SCORE_TITLE_SPACING,
+            HighScoreConfig::TITLE_SIZE,
+            HighScoreConfig::TITLE_SPACING,
             layout.title_color,
         );
 
         // Draw the top 3 scores
         for (i, score) in game.high_scores.iter().enumerate().take(3) {
-            let y_offset = layout.base_y + HIGH_SCORE_TITLE_Y_OFFSET + i as i32 * layout.score_y_spacing;
+            let y_offset =
+                layout.base_y + HighScoreConfig::TITLE_Y_OFFSET + i as i32 * layout.score_y_spacing;
             let medal_color = layout.medal_colors.get(i).copied().unwrap_or(Color::WHITE);
 
             // Medal circle
-            let circle_center_y = y_offset + HIGH_SCORE_CIRCLE_Y_OFFSET;
+            let circle_center_y = y_offset + HighScoreConfig::CIRCLE_Y_OFFSET;
             d.draw_circle(
                 layout.circle_center_x,
                 circle_center_y,
@@ -433,8 +435,8 @@ impl MenuRenderer {
                     (layout.circle_center_x - 6) as f32,
                     (circle_center_y - 8) as f32,
                 ),
-                MENU_HIGH_SCORE_TEXT_SIZE,
-                MENU_HIGH_SCORE_TEXT_SPACING,
+                HighScoreConfig::TEXT_SIZE,
+                HighScoreConfig::TEXT_SPACING,
                 Color::BLACK,
             );
 
@@ -450,8 +452,8 @@ impl MenuRenderer {
                 font,
                 &initials_and_score,
                 Vector2::new((layout.base_x + 45) as f32, (y_offset + 8) as f32),
-                MENU_HIGH_SCORE_SCORE_SIZE,
-                MENU_HIGH_SCORE_SCORE_SPACING,
+                HighScoreConfig::SCORE_SIZE,
+                HighScoreConfig::SCORE_SPACING,
                 layout.score_text_color,
             );
             d.draw_text_ex(
@@ -461,8 +463,8 @@ impl MenuRenderer {
                     (layout.base_x + 45 + initials_and_score.len() as i32 * 10) as f32,
                     (y_offset + 8) as f32,
                 ),
-                MENU_HIGH_SCORE_DIFFICULTY_SIZE,
-                MENU_HIGH_SCORE_DIFFICULTY_SPACING,
+                HighScoreConfig::DIFFICULTY_SIZE,
+                HighScoreConfig::DIFFICULTY_SPACING,
                 difficulty_color,
             );
         }
@@ -472,9 +474,12 @@ impl MenuRenderer {
             d.draw_text_ex(
                 font,
                 "No high scores yet - be the first!",
-                Vector2::new((layout.base_x + 45) as f32, (layout.base_y + HIGH_SCORE_TITLE_Y_OFFSET + 10) as f32),
-                MENU_HIGH_SCORE_NO_SCORES_SIZE,
-                MENU_HIGH_SCORE_NO_SCORES_SPACING,
+                Vector2::new(
+                    (layout.base_x + 45) as f32,
+                    (layout.base_y + HighScoreConfig::TITLE_Y_OFFSET + 10) as f32,
+                ),
+                HighScoreConfig::NO_SCORES_SIZE,
+                HighScoreConfig::NO_SCORES_SPACING,
                 layout.no_scores_color,
             );
         }
@@ -540,11 +545,11 @@ impl MenuRenderer {
             title_font,
             text,
             Vector2::new(
-                text_pos.x + MENU_START_BUTTON_SHADOW_OFFSET,
-                text_pos.y + MENU_START_BUTTON_SHADOW_OFFSET,
+                text_pos.x + StartButtonConfig::SHADOW_OFFSET,
+                text_pos.y + StartButtonConfig::SHADOW_OFFSET,
             ),
-            MENU_START_BUTTON_TEXT_SIZE,
-            MENU_START_BUTTON_TEXT_SPACING,
+            StartButtonConfig::TEXT_SIZE,
+            StartButtonConfig::TEXT_SPACING,
             layout.text_shadow_color,
         );
 
@@ -553,8 +558,8 @@ impl MenuRenderer {
             title_font,
             text,
             text_pos,
-            MENU_START_BUTTON_TEXT_SIZE,
-            MENU_START_BUTTON_TEXT_SPACING,
+            StartButtonConfig::TEXT_SIZE,
+            StartButtonConfig::TEXT_SPACING,
             layout.text_color,
         );
     }

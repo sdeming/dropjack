@@ -1,6 +1,6 @@
 use crate::game::Game;
 use crate::ui::animated_background::AnimatedBackground;
-use crate::ui::drawing::{SCREEN_HEIGHT, SCREEN_WIDTH};
+use crate::ui::config::ScreenConfig;
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
 
@@ -15,8 +15,8 @@ impl SharedRenderer {
         d.draw_rectangle(
             0,
             0,
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
+            ScreenConfig::WIDTH,
+            ScreenConfig::HEIGHT,
             Color::new(0, 0, 0, alpha),
         );
     }
@@ -34,7 +34,7 @@ impl SharedRenderer {
         // Manual centering based on approximate character width
         let approx_char_width = size * 0.6; // Approximation for most fonts
         let text_width = text.len() as f32 * approx_char_width;
-        let x = (SCREEN_WIDTH as f32 - text_width) / 2.0;
+        let x = (ScreenConfig::WIDTH as f32 - text_width) / 2.0;
 
         d.draw_text_ex(font, text, Vector2::new(x, y), size, spacing, color);
     }

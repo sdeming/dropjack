@@ -1,4 +1,4 @@
-use crate::ui::constants::*;
+use crate::ui::config::InstructionsConfig;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -16,17 +16,17 @@ impl InstructionRenderer {
         has_controller: bool,
     ) {
         // Enhanced controls title with glow effect
-        let controls_x = info_panel_x + INSTRUCTIONS_X_OFFSET;
-        let controls_y = board_offset_y + INSTRUCTIONS_Y_OFFSET;
+        let controls_x = info_panel_x + InstructionsConfig::X_OFFSET;
+        let controls_y = board_offset_y + InstructionsConfig::Y_OFFSET;
 
         // Glow effect for the title
-        for glow in 1..=INSTRUCTIONS_GLOW_LAYERS {
+        for glow in 1..=InstructionsConfig::GLOW_LAYERS {
             let glow_alpha = 40 / glow;
             d.draw_text_ex(
                 title_font,
                 "Controls:",
                 Vector2::new((controls_x + glow) as f32, (controls_y + glow) as f32),
-                INSTRUCTIONS_TITLE_SIZE,
+                InstructionsConfig::TITLE_SIZE,
                 1.0,
                 Color::new(255, 215, 0, glow_alpha as u8),
             );
@@ -37,12 +37,12 @@ impl InstructionRenderer {
             title_font,
             "Controls:",
             Vector2::new(
-                (controls_x + INSTRUCTIONS_SHADOW_X_OFFSET) as f32,
-                (controls_y + INSTRUCTIONS_SHADOW_Y_OFFSET) as f32,
+                (controls_x + InstructionsConfig::SHADOW_X_OFFSET) as f32,
+                (controls_y + InstructionsConfig::SHADOW_Y_OFFSET) as f32,
             ),
-            INSTRUCTIONS_TITLE_SIZE,
+            InstructionsConfig::TITLE_SIZE,
             1.0,
-            INSTRUCTIONS_SHADOW_COLOR,
+            InstructionsConfig::SHADOW_COLOR,
         );
 
         // Main title
@@ -50,47 +50,51 @@ impl InstructionRenderer {
             title_font,
             "Controls:",
             Vector2::new(controls_x as f32, controls_y as f32),
-            INSTRUCTIONS_TITLE_SIZE,
+            InstructionsConfig::TITLE_SIZE,
             1.0,
-            INSTRUCTIONS_TITLE_COLOR,
+            InstructionsConfig::TITLE_COLOR,
         );
 
         let instructions = match has_controller {
             true => [
-                ("D-Pad/Left Stick: Move card", INSTRUCTIONS_MOVE_COLOR),
+                (
+                    "D-Pad/Left Stick: Move card",
+                    InstructionsConfig::MOVE_COLOR,
+                ),
                 (
                     "D-Pad Down/Stick Down: Soft drop",
-                    INSTRUCTIONS_SOFT_DROP_COLOR,
+                    InstructionsConfig::SOFT_DROP_COLOR,
                 ),
-                ("A Button: Hard drop", INSTRUCTIONS_HARD_DROP_COLOR),
-                ("Start: Pause", INSTRUCTIONS_PAUSE_COLOR),
+                ("A Button: Hard drop", InstructionsConfig::HARD_DROP_COLOR),
+                ("Start: Pause", InstructionsConfig::PAUSE_COLOR),
             ],
             false => [
                 (
                     "Left/Right Arrow: Move card",
-                    INSTRUCTION_KEYBOARD_COLOR,
+                    InstructionsConfig::KEYBOARD_COLOR,
                 ),
-                ("Down Arrow: Soft drop", INSTRUCTIONS_SOFT_DROP_COLOR),
-                ("Space: Hard drop", INSTRUCTIONS_HARD_DROP_COLOR),
-                ("Escape: Pause", INSTRUCTIONS_PAUSE_COLOR),
+                ("Down Arrow: Soft drop", InstructionsConfig::SOFT_DROP_COLOR),
+                ("Space: Hard drop", InstructionsConfig::HARD_DROP_COLOR),
+                ("Escape: Pause", InstructionsConfig::PAUSE_COLOR),
             ],
         };
 
         for (i, (text, color)) in instructions.iter().enumerate() {
-            let y_pos =
-                controls_y + INSTRUCTIONS_Y_START_OFFSET + i as i32 * INSTRUCTIONS_LINE_SPACING;
+            let y_pos = controls_y
+                + InstructionsConfig::Y_START_OFFSET
+                + i as i32 * InstructionsConfig::LINE_SPACING;
 
             // Subtle shadow for each instruction
             d.draw_text_ex(
                 font,
                 text,
                 Vector2::new(
-                    (controls_x + INSTRUCTIONS_TEXT_X_OFFSET) as f32,
-                    (y_pos + INSTRUCTIONS_TEXT_Y_OFFSET) as f32,
+                    (controls_x + InstructionsConfig::TEXT_X_OFFSET) as f32,
+                    (y_pos + InstructionsConfig::TEXT_Y_OFFSET) as f32,
                 ),
-                INSTRUCTIONS_TEXT_SIZE,
+                InstructionsConfig::TEXT_SIZE,
                 1.0,
-                INSTRUCTIONS_TEXT_SHADOW_COLOR,
+                InstructionsConfig::TEXT_SHADOW_COLOR,
             );
 
             // Main text with color coding
@@ -98,7 +102,7 @@ impl InstructionRenderer {
                 font,
                 text,
                 Vector2::new(controls_x as f32, y_pos as f32),
-                INSTRUCTIONS_TEXT_SIZE,
+                InstructionsConfig::TEXT_SIZE,
                 1.0,
                 *color,
             );
@@ -114,17 +118,23 @@ impl InstructionRenderer {
             d.draw_text_ex(
                 font,
                 "D-Pad: Cycle letters, A: Next/Accept, B: Backspace",
-                Vector2::new(GAME_OVER_INSTRUCTION_X, GAME_OVER_INSTRUCTION_Y),
-                GAME_OVER_INSTRUCTION_SIZE,
+                Vector2::new(
+                    InstructionsConfig::GAME_OVER_X,
+                    InstructionsConfig::GAME_OVER_Y,
+                ),
+                InstructionsConfig::GAME_OVER_SIZE,
                 1.0,
-                INSTRUCTION_CONTROLLER_COLOR,
+                InstructionsConfig::CONTROLLER_COLOR,
             );
         } else {
             d.draw_text_ex(
                 font,
                 "Type your initials, then press ENTER when done",
-                Vector2::new(GAME_OVER_INSTRUCTION_X_ALT, GAME_OVER_INSTRUCTION_Y),
-                GAME_OVER_INSTRUCTION_SIZE,
+                Vector2::new(
+                    InstructionsConfig::GAME_OVER_X_ALT,
+                    InstructionsConfig::GAME_OVER_Y,
+                ),
+                InstructionsConfig::GAME_OVER_SIZE,
                 1.0,
                 Color::LIGHTGRAY,
             );
@@ -136,35 +146,47 @@ impl InstructionRenderer {
             d.draw_text_ex(
                 font,
                 "Press A to Quit",
-                Vector2::new(QUIT_CONFIRM_QUIT_X, QUIT_CONFIRM_QUIT_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_QUIT_COLOR,
+                Vector2::new(
+                    InstructionsConfig::QUIT_CONFIRM_QUIT_X,
+                    InstructionsConfig::QUIT_CONFIRM_QUIT_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::QUIT_COLOR,
             );
             d.draw_text_ex(
                 font,
                 "Press B to Cancel",
-                Vector2::new(QUIT_CONFIRM_CANCEL_X, QUIT_CONFIRM_CANCEL_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_RESUME_COLOR,
+                Vector2::new(
+                    InstructionsConfig::QUIT_CONFIRM_CANCEL_X,
+                    InstructionsConfig::QUIT_CONFIRM_CANCEL_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::RESUME_COLOR,
             );
         } else {
             d.draw_text_ex(
                 font,
                 "Press Y to Quit",
-                Vector2::new(QUIT_CONFIRM_QUIT_X, QUIT_CONFIRM_QUIT_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_QUIT_COLOR,
+                Vector2::new(
+                    InstructionsConfig::QUIT_CONFIRM_QUIT_X,
+                    InstructionsConfig::QUIT_CONFIRM_QUIT_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::QUIT_COLOR,
             );
             d.draw_text_ex(
                 font,
                 "Press N or ESC to Cancel",
-                Vector2::new(QUIT_CONFIRM_CANCEL_X_ALT, QUIT_CONFIRM_CANCEL_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_RESUME_COLOR,
+                Vector2::new(
+                    InstructionsConfig::QUIT_CONFIRM_CANCEL_X_ALT,
+                    InstructionsConfig::QUIT_CONFIRM_CANCEL_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::RESUME_COLOR,
             );
         }
     }
@@ -174,35 +196,47 @@ impl InstructionRenderer {
             d.draw_text_ex(
                 font,
                 "Press A to Forfeit",
-                Vector2::new(PAUSE_FORFEIT_X, PAUSE_FORFEIT_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_QUIT_COLOR,
+                Vector2::new(
+                    InstructionsConfig::PAUSE_FORFEIT_X,
+                    InstructionsConfig::PAUSE_FORFEIT_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::QUIT_COLOR,
             );
             d.draw_text_ex(
                 font,
                 "Press B to Resume",
-                Vector2::new(PAUSE_RESUME_X, PAUSE_RESUME_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_RESUME_COLOR,
+                Vector2::new(
+                    InstructionsConfig::PAUSE_RESUME_X,
+                    InstructionsConfig::PAUSE_RESUME_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::RESUME_COLOR,
             );
         } else {
             d.draw_text_ex(
                 font,
                 "Press N or ESC to Resume",
-                Vector2::new(PAUSE_RESUME_X_ALT, PAUSE_FORFEIT_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_RESUME_COLOR,
+                Vector2::new(
+                    InstructionsConfig::PAUSE_RESUME_X_ALT,
+                    InstructionsConfig::PAUSE_FORFEIT_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::RESUME_COLOR,
             );
             d.draw_text_ex(
                 font,
                 "Press Y to Quit to Menu",
-                Vector2::new(PAUSE_QUIT_X, PAUSE_RESUME_Y),
-                QUIT_CONFIRM_SIZE,
-                QUIT_CONFIRM_SPACING,
-                INSTRUCTION_QUIT_COLOR,
+                Vector2::new(
+                    InstructionsConfig::PAUSE_QUIT_X,
+                    InstructionsConfig::PAUSE_RESUME_Y,
+                ),
+                InstructionsConfig::QUIT_CONFIRM_SIZE,
+                InstructionsConfig::QUIT_CONFIRM_SPACING,
+                InstructionsConfig::QUIT_COLOR,
             );
         }
     }

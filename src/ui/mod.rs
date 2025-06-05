@@ -3,8 +3,7 @@ pub mod animated_background;
 mod atlas_card_renderer;
 mod background_renderer;
 mod card_renderer;
-pub mod constants;
-pub mod drawing;
+pub mod config;
 mod drawing_helpers;
 pub mod input_handler;
 mod instruction_renderer;
@@ -16,7 +15,8 @@ mod text_renderer;
 pub use drawing_helpers::DrawingHelpers;
 
 use self::animated_background::AnimatedBackground;
-use self::drawing::{BOARD_OFFSET_X, BOARD_OFFSET_Y, SCREEN_HEIGHT, SCREEN_WIDTH};
+use self::config::{BoardConfig, ParticleConfig, PerformanceConfig, ScreenConfig};
+// Board offset constants are now in ScreenConfig
 use self::input_handler::InputHandler;
 use self::particle_system::ParticleSystem;
 use crate::audio::AudioSystem;
@@ -71,11 +71,11 @@ impl FPSCounter {
 impl GameUI {
     pub fn new() -> Self {
         let (mut rl, thread) = raylib::init()
-            .size(SCREEN_WIDTH, SCREEN_HEIGHT)
+            .size(ScreenConfig::WIDTH, ScreenConfig::HEIGHT)
             .title("DropJack")
             .build();
 
-        rl.set_target_fps(60);
+        rl.set_target_fps(PerformanceConfig::TARGET_FPS);
         rl.set_exit_key(None); // Disable ESC from closing the window
 
         // Load the custom fonts
@@ -108,8 +108,8 @@ impl GameUI {
             title_font,
             card_atlas,
             particle_system: ParticleSystem::builder()
-                .particle_capacity(150) // Increase capacity for more particles
-                .explosion_particle_count(40) // Slightly more particles per explosion
+                .particle_capacity(ParticleConfig::SYSTEM_CAPACITY)
+                .explosion_particle_count(ParticleConfig::EXPLOSION_COUNT)
                 .build(),
             input_handler: InputHandler::new(),
             last_frame_time: std::time::Instant::now(),
@@ -121,125 +121,156 @@ impl GameUI {
 
     pub fn run(&mut self, game: &mut Game) {
         while !self.rl.window_should_close() {
-            // Calculate delta time
-            let now = std::time::Instant::now();
-            let delta_time = now.duration_since(self.last_frame_time).as_secs_f32();
-            self.last_frame_time = now;
+            self.update_frame(game);
+            self.render_frame(game);
+        }
+    }
 
-            // Update FPS counter
-            self.fps_counter.update(delta_time);
+    /// Separated update logic for better organization
+    fn update_frame(&mut self, game: &mut Game) {
+        // Calculate delta time
+        let now = std::time::Instant::now();
+        let delta_time = now.duration_since(self.last_frame_time).as_secs_f32();
+        self.last_frame_time = now;
 
-            // Detect controller availability
-            let has_controller = InputHandler::is_controller_connected(&self.rl);
+        // Update FPS counter
+        self.fps_counter.update(delta_time);
 
-            // Handle input
-            self.input_handler.handle_input(&mut self.rl, game);
+        // Detect controller availability
+        let _has_controller = InputHandler::is_controller_connected(&self.rl);
 
-            // Update game state (only when not paused)
-            if !game.is_paused() {
-                game.update();
-            }
+        // Handle input
+        self.input_handler.handle_input(&mut self.rl, game);
 
-            // Update animated background for title and quit screens
-            if game.is_start_screen() || game.is_quit_confirm() {
-                self.animated_background.update(delta_time);
-            }
+        // Update game state (only when not paused)
+        if !game.is_paused() {
+            game.update();
+        }
 
-            // Check for explosions and trigger them
-            let explosions = game.take_pending_explosions();
-            for (x, y, card) in explosions {
-                let position = Vector2::new(
-                    (BOARD_OFFSET_X + x * game.board.cell_size + game.board.cell_size / 2) as f32,
-                    (BOARD_OFFSET_Y + y * game.board.cell_size + game.board.cell_size / 2) as f32,
-                );
+        // Update animated background for title and quit screens
+        if game.is_start_screen() || game.is_quit_confirm() {
+            self.animated_background.update(delta_time);
+        }
 
-                self.particle_system.add_card_explosion(
-                    card,
-                    position,
-                    game.board.cell_size as f32,
-                    &self.card_atlas,
-                );
-            }
+        // Process explosions
+        self.process_explosions(game);
 
-            // Process audio events
-            let audio_events = game.take_pending_audio_events();
-            for event in audio_events {
-                // Play the appropriate sound for each specific event
-                self.audio_system.play_event(event, &mut self.rl);
-            }
+        // Process audio events
+        self.process_audio_events(game);
 
-            // Update particle system
-            self.particle_system.update(delta_time);
+        // Update particle system
+        self.particle_system.update(delta_time);
+    }
 
-            // Render the game
-            {
-                let mut d = self.rl.begin_drawing(&self.thread);
-                // Use elegant gradient background instead of flat DARKGREEN
-                DrawingHelpers::draw_gradient_background(&mut d);
+    /// Separated render logic for better organization
+    fn render_frame(&mut self, game: &Game) {
+        let has_controller = InputHandler::is_controller_connected(&self.rl);
 
-                game.state.render(
-                    &mut d,
-                    game,
-                    has_controller,
-                    &self.title_font,
-                    &self.font,
-                    self.card_atlas
-                        .as_ref()
-                        .expect("Card atlas must be loaded!"),
-                    &mut self.particle_system,
-                    &mut self.animated_background,
-                );
+        let mut d = self.rl.begin_drawing(&self.thread);
 
-                // Draw FPS counter inline
-                let fps = self.fps_counter.get_fps();
-                let fps_text = format!("FPS: {:.1}", fps);
+        // Use elegant gradient background instead of flat DARKGREEN
+        DrawingHelpers::draw_gradient_background(&mut d);
 
-                // Position in top-right corner
-                let text_x = SCREEN_WIDTH - 100;
-                let text_y = 10;
-                let font_size = 20.0;
+        // Render game state
+        game.state.render(
+            &mut d,
+            game,
+            has_controller,
+            &self.title_font,
+            &self.font,
+            self.card_atlas
+                .as_ref()
+                .expect("Card atlas must be loaded!"),
+            &mut self.particle_system,
+            &mut self.animated_background,
+        );
 
-                // Choose color based on FPS performance
-                let fps_color = if fps >= 55.0 {
-                    Color::new(0, 255, 0, 255) // Green for good FPS
-                } else if fps >= 30.0 {
-                    Color::new(255, 255, 0, 255) // Yellow for medium FPS
-                } else {
-                    Color::new(255, 0, 0, 255) // Red for poor FPS
-                };
+        // Render FPS counter with improved styling
+        Self::render_fps_counter_static(&mut d, &self.font, self.fps_counter.get_fps());
+    }
 
-                // Draw background panel for better visibility
-                d.draw_rectangle(text_x - 10, text_y - 5, 95, 30, Color::new(0, 0, 0, 150));
+    /// Renders FPS counter with improved styling (static method to avoid borrowing issues)
+    fn render_fps_counter_static(d: &mut RaylibDrawHandle, font: &Font, fps: f32) {
+        const FPS_PANEL_WIDTH: i32 = 95;
+        const FPS_PANEL_HEIGHT: i32 = 30;
+        const FPS_PANEL_X: i32 = ScreenConfig::WIDTH - FPS_PANEL_WIDTH - 10;
+        const FPS_PANEL_Y: i32 = 10;
+        const FPS_FONT_SIZE: f32 = 20.0;
 
-                // Draw border
-                d.draw_rectangle_lines(
-                    text_x - 10,
-                    text_y - 5,
-                    95,
-                    30,
-                    Color::new(255, 255, 255, 100),
-                );
+        let fps_text = format!("FPS: {:.1}", fps);
 
-                // Draw shadow
-                d.draw_text_ex(
-                    &self.font,
-                    &fps_text,
-                    Vector2::new((text_x + 1) as f32, (text_y + 1) as f32),
-                    font_size,
-                    1.0,
-                    Color::new(0, 0, 0, 150),
-                );
+        // Choose color based on FPS performance
+        let fps_color = match fps {
+            f if f >= 55.0 => Color::new(0, 255, 0, 255), // Green for good FPS
+            f if f >= 30.0 => Color::new(255, 255, 0, 255), // Yellow for medium FPS
+            _ => Color::new(255, 0, 0, 255),              // Red for poor FPS
+        };
 
-                // Draw main text
-                d.draw_text_ex(
-                    &self.font,
-                    &fps_text,
-                    Vector2::new(text_x as f32, text_y as f32),
-                    font_size,
-                    1.0,
-                    fps_color,
-                );
-            }
+        // Draw background panel for better visibility
+        d.draw_rectangle(
+            FPS_PANEL_X - 10,
+            FPS_PANEL_Y - 5,
+            FPS_PANEL_WIDTH,
+            FPS_PANEL_HEIGHT,
+            Color::new(0, 0, 0, 150),
+        );
+
+        // Draw border
+        d.draw_rectangle_lines(
+            FPS_PANEL_X - 10,
+            FPS_PANEL_Y - 5,
+            FPS_PANEL_WIDTH,
+            FPS_PANEL_HEIGHT,
+            Color::new(255, 255, 255, 100),
+        );
+
+        // Draw shadow
+        d.draw_text_ex(
+            font,
+            &fps_text,
+            Vector2::new((FPS_PANEL_X + 1) as f32, (FPS_PANEL_Y + 1) as f32),
+            FPS_FONT_SIZE,
+            1.0,
+            Color::new(0, 0, 0, 150),
+        );
+
+        // Draw main text
+        d.draw_text_ex(
+            font,
+            &fps_text,
+            Vector2::new(FPS_PANEL_X as f32, FPS_PANEL_Y as f32),
+            FPS_FONT_SIZE,
+            1.0,
+            fps_color,
+        );
+    }
+
+    /// Process game explosions and create particle effects
+    fn process_explosions(&mut self, game: &mut Game) {
+        let explosions = game.take_pending_explosions();
+        for (x, y, card) in explosions {
+            let position = Vector2::new(
+                (BoardConfig::OFFSET_X + x * game.board.cell_size + game.board.cell_size / 2)
+                    as f32,
+                (BoardConfig::OFFSET_Y + y * game.board.cell_size + game.board.cell_size / 2)
+                    as f32,
+            );
+
+            self.particle_system.add_card_explosion(
+                card,
+                position,
+                game.board.cell_size as f32,
+                &self.card_atlas,
+            );
+        }
+    }
+
+    /// Process audio events from the game
+    fn process_audio_events(&mut self, game: &mut Game) {
+        let audio_events = game.take_pending_audio_events();
+        for event in audio_events {
+            // Play the appropriate sound for each specific event
+            self.audio_system.play_event(event, &mut self.rl);
         }
     }
 }

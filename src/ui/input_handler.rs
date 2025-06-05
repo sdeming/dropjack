@@ -7,6 +7,73 @@ pub struct InputHandler {
     move_delay: std::time::Duration,
 }
 
+/// Input mapping for different controllers and keyboards
+struct InputMapping;
+
+impl InputMapping {
+    /// Check if any "left" input is pressed
+    fn is_left_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_LEFT)
+            || (has_controller
+                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT)
+                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) < -0.3))
+    }
+
+    /// Check if any "right" input is pressed
+    fn is_right_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_RIGHT)
+            || (has_controller
+                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_RIGHT)
+                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) > 0.3))
+    }
+
+    /// Check if any "left" input is held down
+    fn is_left_down(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_down(KeyboardKey::KEY_LEFT)
+            || (has_controller
+                && (rl.is_gamepad_button_down(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT)
+                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) < -0.3))
+    }
+
+    /// Check if any "right" input is held down
+    fn is_right_down(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_down(KeyboardKey::KEY_RIGHT)
+            || (has_controller
+                && (rl.is_gamepad_button_down(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_RIGHT)
+                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) > 0.3))
+    }
+
+    /// Check if any "down" input is held down
+    fn is_down_down(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_down(KeyboardKey::KEY_DOWN)
+            || (has_controller
+                && (rl.is_gamepad_button_down(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_DOWN)
+                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_Y) > 0.3))
+    }
+
+    /// Check if any "action/space" input is pressed
+    fn is_action_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_SPACE)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_DOWN))
+    }
+
+    /// Check if any "escape/menu" input is pressed
+    fn is_escape_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_LEFT))
+    }
+
+    /// Check if any "confirm/enter" input is pressed
+    fn is_confirm_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_ENTER)
+            || rl.is_key_pressed(KeyboardKey::KEY_SPACE)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT))
+    }
+}
+
 impl InputHandler {
     pub fn new() -> Self {
         InputHandler {
@@ -42,14 +109,8 @@ impl InputHandler {
         has_controller: bool,
     ) {
         // Handle difficulty selection
-        if rl.is_key_pressed(KeyboardKey::KEY_LEFT)
-            || rl.is_key_pressed(KeyboardKey::KEY_RIGHT)
-            || (has_controller
-                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT)
-                    || rl.is_gamepad_button_pressed(
-                        0,
-                        GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_RIGHT,
-                    )))
+        if InputMapping::is_left_pressed(rl, has_controller)
+            || InputMapping::is_right_pressed(rl, has_controller)
         {
             game.difficulty = match game.difficulty {
                 Difficulty::Hard => Difficulty::Easy,
@@ -61,18 +122,12 @@ impl InputHandler {
         }
 
         // Handle quit confirmation
-        if rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
-            || (has_controller
-                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_LEFT))
-        {
+        if InputMapping::is_escape_pressed(rl, has_controller) {
             game.transition_to_quit_confirm();
         }
 
         // Start game
-        if rl.is_key_pressed(KeyboardKey::KEY_SPACE)
-            || (has_controller
-                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT)))
-        {
+        if InputMapping::is_confirm_pressed(rl, has_controller) {
             game.start_game(game.difficulty);
         }
     }
@@ -88,48 +143,27 @@ impl InputHandler {
 
         // Handle movement (left/right)
         if can_move {
-            if rl.is_key_down(KeyboardKey::KEY_LEFT)
-                || (has_controller
-                    && rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) < -0.3)
-                || (has_controller
-                    && rl.is_gamepad_button_down(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT))
-            {
+            if InputMapping::is_left_down(rl, has_controller) {
                 game.move_current_card_left();
                 self.last_move_time = now;
-            } else if rl.is_key_down(KeyboardKey::KEY_RIGHT)
-                || (has_controller
-                    && rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) > 0.3)
-                || (has_controller
-                    && rl.is_gamepad_button_down(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_RIGHT))
-            {
+            } else if InputMapping::is_right_down(rl, has_controller) {
                 game.move_current_card_right();
                 self.last_move_time = now;
             }
         }
 
         // Handle soft drop (down key)
-        if rl.is_key_down(KeyboardKey::KEY_DOWN)
-            || (has_controller
-                && rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_Y) > 0.3)
-            || (has_controller
-                && rl.is_gamepad_button_down(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_DOWN))
-        {
+        if InputMapping::is_down_down(rl, has_controller) {
             game.move_current_card_down();
         }
 
         // Handle hard drop (space key)
-        if rl.is_key_pressed(KeyboardKey::KEY_SPACE)
-            || (has_controller
-                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_DOWN))
-        {
+        if InputMapping::is_action_pressed(rl, has_controller) {
             game.hard_drop();
         }
 
         // Handle pause
-        if rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
-            || (has_controller
-                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT))
-        {
+        if InputMapping::is_escape_pressed(rl, has_controller) {
             game.transition_to_paused();
         }
     }

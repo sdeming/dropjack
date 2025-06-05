@@ -1,5 +1,5 @@
 use crate::models::Card;
-use crate::ui::drawing::AtlasCardRenderer;
+use crate::ui::atlas_card_renderer::AtlasCardRenderer;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::prelude::Texture2D;

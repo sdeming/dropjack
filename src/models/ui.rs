@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_particle_builder_with_angular_velocity() {
-        let angular_velocity = 3.14;
+        let angular_velocity = std::f32::consts::PI;
 
         let particle = Particle::builder(
             Vector2::new(0.0, 0.0),
