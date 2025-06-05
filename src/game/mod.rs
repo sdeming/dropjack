@@ -257,87 +257,129 @@ impl Game {
         self.fall_speed = Duration::from_millis(new_fall_time as u64);
     }
 
+    /// Checks if a move to a new logical position is valid.
+    /// This prevents a card from moving into or through an occupied space.
+    fn is_move_valid(&self, current_x: i32, current_y: i32, new_x: i32, new_y: i32) -> bool {
+        // Check the target cell
+        if !self.board.is_cell_empty(new_x, new_y) {
+            return false;
+        }
+
+        // Check for diagonal clipping: if moving both horizontally and vertically,
+        // ensure the corner cell is also empty to prevent clipping.
+        if new_x != current_x && new_y != current_y {
+            if !self.board.is_cell_empty(current_x, new_y)
+                || !self.board.is_cell_empty(new_x, current_y)
+            {
+                return false;
+            }
+        }
+
+        true
+    }
+
     pub fn move_current_card_left(&mut self) {
-        if let Some(ref mut playing_card) = self.current_card {
-            // Only allow movement if not currently moving horizontally
-            if playing_card.position.x == playing_card.target.x {
-                let new_x = playing_card.position.x - 1;
-                if new_x >= 0 && self.board.is_cell_empty(new_x, playing_card.position.y) {
-                    playing_card.target.x = new_x;
-                    // Add audio event for moving left
-                    self.add_audio_event(AudioEvent::MoveLeft);
+        if let Some(card) = &self.current_card {
+            // Check only the immediate horizontal destination.
+            // Let the robust `move_current_card_down` handle fall logic.
+            if card.target.x == card.position.x {
+                let new_x = card.position.x - 1;
+                if new_x >= 0 && self.board.is_cell_empty(new_x, card.position.y) {
+                    if let Some(card_mut) = self.current_card.as_mut() {
+                        card_mut.target.x = new_x;
+                        self.add_audio_event(AudioEvent::MoveLeft);
+                    }
                 }
             }
         }
     }
 
     pub fn move_current_card_right(&mut self) {
-        if let Some(ref mut playing_card) = self.current_card {
-            // Only allow movement if not currently moving horizontally
-            if playing_card.position.x == playing_card.target.x {
-                let new_x = playing_card.position.x + 1;
-                if new_x < self.board.width
-                    && self.board.is_cell_empty(new_x, playing_card.position.y)
-                {
-                    playing_card.target.x = new_x;
-                    // Add audio event for moving right
-                    self.add_audio_event(AudioEvent::MoveRight);
+        if let Some(card) = &self.current_card {
+            // Check only the immediate horizontal destination.
+            if card.target.x == card.position.x {
+                let new_x = card.position.x + 1;
+                if new_x < self.board.width && self.board.is_cell_empty(new_x, card.position.y) {
+                    if let Some(card_mut) = self.current_card.as_mut() {
+                        card_mut.target.x = new_x;
+                        self.add_audio_event(AudioEvent::MoveRight);
+                    }
                 }
             }
         }
     }
 
     pub fn move_current_card_down(&mut self) {
-        if let Some(ref mut playing_card) = self.current_card {
-            let new_y = playing_card.position.y + 1;
+        if let Some(card) = self.current_card.as_ref() {
+            let current_pos = card.position;
+            let target_x = card.target.x;
+            let next_y = current_pos.y + 1;
 
-            if new_y < self.board.height && self.board.is_cell_empty(playing_card.position.x, new_y)
-            {
-                if !playing_card.is_falling {
-                    playing_card.target.y = new_y;
-                    playing_card.is_falling = true;
-                    // Add audio event for soft drop
+            if next_y >= self.board.height {
+                self.place_current_card();
+                return;
+            }
+
+            // First, check if the ideal target position (e.g., diagonal) is valid.
+            let can_move_to_target =
+                self.is_move_valid(current_pos.x, current_pos.y, target_x, next_y);
+
+            // As a fallback, check if the card can at least fall straight down.
+            let can_fall_vertically =
+                self.is_move_valid(current_pos.x, current_pos.y, current_pos.x, next_y);
+
+            if can_move_to_target {
+                // Best case: move towards the player's intended target.
+                if let Some(card_mut) = self.current_card.as_mut() {
+                    card_mut.target.y = next_y;
+                    card_mut.is_falling = true;
+                    self.last_fall_time = Instant::now();
                     self.add_audio_event(AudioEvent::SoftDrop);
                 }
-            } else if !playing_card.is_falling {
-                playing_card.visual_position.x =
-                    (playing_card.position.x * self.board.cell_size) as f32;
-                playing_card.target.x = playing_card.position.x;
+            } else if can_fall_vertically {
+                // Fallback: The diagonal is blocked, but we can fall straight down.
+                // This prevents the card from getting stuck in mid-air.
+                if let Some(card_mut) = self.current_card.as_mut() {
+                    card_mut.target.x = current_pos.x; // Halt horizontal movement.
+                    card_mut.target.y = next_y;
+                    card_mut.is_falling = true;
+                    self.last_fall_time = Instant::now();
+                    self.add_audio_event(AudioEvent::SoftDrop);
+                }
+            } else {
+                // Blocked below, even vertically. The card has landed.
                 self.place_current_card();
-                self.process_combinations();
-                self.spawn_new_card();
             }
+        } else {
+            // No card to process, which can happen between placement and spawning.
         }
     }
 
     pub fn hard_drop(&mut self) {
-        if let Some(ref mut playing_card) = self.current_card {
-            // Find the lowest position the card can go
-            let mut new_y = playing_card.position.y;
-            while new_y + 1 < self.board.height
-                && self.board.is_cell_empty(playing_card.position.x, new_y + 1)
-            {
-                new_y += 1;
+        let final_y = if let Some(card) = &self.current_card {
+            let mut y = card.position.y;
+            let card_x = card.position.x;
+            for test_y in (card.position.y + 1)..self.board.height {
+                if self.is_move_valid(card_x, test_y - 1, card_x, test_y) {
+                    y = test_y;
+                } else {
+                    break;
+                }
             }
+            Some(y)
+        } else {
+            None
+        };
 
-            // Update both logical and visual positions immediately (instant drop)
-            playing_card.position.y = new_y;
-            playing_card.visual_position.y = (new_y * self.board.cell_size) as f32;
-            playing_card.target.y = new_y;
-            playing_card.is_falling = false;
-
-            // Ensure horizontal position is also synced
-            playing_card.visual_position.x =
-                (playing_card.position.x * self.board.cell_size) as f32;
-            playing_card.target.x = playing_card.position.x;
-
+        if let Some(y) = final_y {
+            if let Some(ref mut playing_card) = self.current_card {
+                if y > playing_card.position.y {
+                    playing_card.target.y = y;
+                    playing_card.position.y = y;
+                    playing_card.is_falling = true;
+                }
+            }
             self.place_current_card();
-
-            // Check for combinations and apply cascading effects
-            self.process_combinations();
-
-            // Spawn new card (current_card is now None after place_current_card)
-            self.spawn_new_card();
         }
     }
 

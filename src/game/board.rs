@@ -206,36 +206,32 @@ impl Board {
         all_combinations
     }
 
-    // Apply gravity to make cards fall after removing combinations with smooth animation
+    // Apply gravity to compact cards downwards in each column.
+    // This uses a single-pass approach for each column, which is more efficient
+    // than the previous implementation. It also ensures that cards can't collide
+    // or end up in invalid positions.
     pub fn apply_gravity(&mut self) -> bool {
-        // Clear any existing falling cards that have finished
         self.falling_cards.retain(|card| card.is_animating);
 
         let mut changes_made = false;
 
         for x in 0..self.width {
-            for y in (1..self.height).rev() {
-                for y_above in (0..y).rev() {
-                    if self.grid[y as usize][x as usize].is_none()
-                        && self.grid[y_above as usize][x as usize].is_some()
-                    {
-                        // Create falling animation for this card
-                        let card = self.grid[y_above as usize][x as usize].unwrap();
+            let mut write_y = self.height - 1;
+            for read_y in (0..self.height).rev() {
+                if let Some(card) = self.grid[read_y as usize][x as usize].take() {
+                    if read_y != write_y {
                         let falling_card = FallingCard {
                             card,
-                            to_y: y,
+                            to_y: write_y,
                             x,
-                            visual_y: (y_above * self.cell_size) as f32,
+                            visual_y: (read_y * self.cell_size) as f32,
                             is_animating: true,
                         };
                         self.falling_cards.push(falling_card);
-
-                        // Move card in grid immediately (logic) but animate visually
-                        self.grid[y as usize][x as usize] = self.grid[y_above as usize][x as usize];
-                        self.grid[y_above as usize][x as usize] = None;
                         changes_made = true;
-                        break;
                     }
+                    self.grid[write_y as usize][x as usize] = Some(card);
+                    write_y -= 1;
                 }
             }
         }
