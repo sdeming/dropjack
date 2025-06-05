@@ -95,7 +95,7 @@ impl GameUI {
         }
 
         // Initialize audio system
-        let audio_system = AudioSystem::new(&mut rl, &thread);
+        let audio_system = AudioSystem::new();
 
         // Print audio status for debugging/information
         audio_system.print_audio_status();

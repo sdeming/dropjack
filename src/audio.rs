@@ -15,10 +15,7 @@ pub struct AudioSystem {
 
 impl AudioSystem {
     /// Initialize the audio system using rodio
-    pub fn new(
-        _rl: &mut raylib::prelude::RaylibHandle,
-        _thread: &raylib::prelude::RaylibThread,
-    ) -> Self {
+    pub fn new() -> Self {
         // Initialize rodio output stream
         let (stream, stream_handle) = match OutputStream::try_default() {
             Ok((stream, handle)) => {
@@ -98,69 +95,23 @@ impl AudioSystem {
     /// To customize audio, modify these file paths or add the corresponding
     /// audio files to your assets/audio/ directory.
     fn get_audio_config() -> HashMap<AudioEvent, String> {
-        let mut config = HashMap::new();
-
-        // UI and Menu Sounds
-        config.insert(
-            AudioEvent::DifficultyChange,
-            "assets/audio/difficulty_change.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::StartGame,
-            "assets/audio/start_game.ogg".to_string(),
-        );
-        config.insert(AudioEvent::PauseGame, "assets/audio/pause.ogg".to_string());
-        config.insert(
-            AudioEvent::ResumeGame,
-            "assets/audio/resume.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::OpenQuitConfirmation,
-            "assets/audio/open_quit.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::ReturnToGame,
-            "assets/audio/return_to_game.ogg".to_string(),
-        );
-        config.insert(AudioEvent::QuitGame, "assets/audio/quit.ogg".to_string());
-
-        // Gameplay Sounds
-        config.insert(
-            AudioEvent::DropCard,
-            "assets/audio/drop_card.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::MakeMatch,
-            "assets/audio/make_match.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::ExplodeCard,
-            "assets/audio/explode_card.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::ForfeitGame,
-            "assets/audio/forfeit.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::GameOver,
-            "assets/audio/game_over.ogg".to_string(),
-        );
-
-        // Card Movement Sounds
-        config.insert(
-            AudioEvent::MoveLeft,
-            "assets/audio/move_left.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::MoveRight,
-            "assets/audio/move_right.ogg".to_string(),
-        );
-        config.insert(
-            AudioEvent::SoftDrop,
-            "assets/audio/soft_drop.ogg".to_string(),
-        );
-
-        config
+        HashMap::from([
+            (AudioEvent::DifficultyChange, "assets/audio/difficulty_change.ogg".to_string()),
+            (AudioEvent::StartGame, "assets/audio/start_game.ogg".to_string()),
+            (AudioEvent::PauseGame, "assets/audio/pause.ogg".to_string()),
+            (AudioEvent::ResumeGame, "assets/audio/resume.ogg".to_string()),
+            (AudioEvent::OpenQuitConfirmation, "assets/audio/open_quit.ogg".to_string()),
+            (AudioEvent::ReturnToGame, "assets/audio/return_to_game.ogg".to_string()),
+            (AudioEvent::QuitGame, "assets/audio/quit.ogg".to_string()),
+            (AudioEvent::DropCard, "assets/audio/drop_card.ogg".to_string()),
+            (AudioEvent::MakeMatch, "assets/audio/make_match.ogg".to_string()),
+            (AudioEvent::ExplodeCard, "assets/audio/explode_card.ogg".to_string()),
+            (AudioEvent::ForfeitGame, "assets/audio/forfeit.ogg".to_string()),
+            (AudioEvent::GameOver, "assets/audio/game_over.ogg".to_string()),
+            (AudioEvent::MoveLeft, "assets/audio/move_left.ogg".to_string()),
+            (AudioEvent::MoveRight, "assets/audio/move_right.ogg".to_string()),
+            (AudioEvent::SoftDrop, "assets/audio/soft_drop.ogg".to_string()),
+        ])
     }
 
     /// Load a sound file into memory
