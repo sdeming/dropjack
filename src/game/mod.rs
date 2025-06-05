@@ -106,7 +106,7 @@ impl GameBuilder {
         let database = Database::new(
             self.database_path
                 .as_ref()
-                .ok_or("Database path must be provided")?
+                .ok_or("Database path must be provided")?,
         )?;
         let high_scores = database.get_high_scores(10).unwrap_or_default();
 
@@ -191,7 +191,7 @@ impl Game {
         if let Some(card) = self.next_card {
             let x = self.last_dropped_x.unwrap_or(self.board.width / 2);
             let position = Position { x, y: 0 };
-            
+
             self.current_card = Some(
                 PlayingCard::builder(card, position)
                     .cell_size(self.board.cell_size)
@@ -202,9 +202,9 @@ impl Game {
                     .target(Position { x, y: 0 })
                     .falling(false)
                     .hard_dropping(false)
-                    .build()
+                    .build(),
             );
-            
+
             self.next_card = self.deck.draw();
 
             if self.next_card.is_none() {
@@ -282,7 +282,11 @@ impl Game {
             let target_y = (playing_card.target.y * self.board.cell_size) as f32;
             if playing_card.is_falling && playing_card.visual_position.y != target_y {
                 // Use faster fall speed for hard drops
-                let fall_speed = if playing_card.is_hard_dropping { 20.0 } else { 8.0 };
+                let fall_speed = if playing_card.is_hard_dropping {
+                    20.0
+                } else {
+                    8.0
+                };
                 let diff_y = target_y - playing_card.visual_position.y;
                 let move_y = if diff_y.abs() <= fall_speed {
                     diff_y
@@ -339,7 +343,7 @@ impl Game {
 
             // Process combinations after placing the card
             self.process_combinations();
-            
+
             // Apply gravity to handle any floating cards after combinations
             while self.board.apply_gravity() {}
         }
@@ -485,16 +489,17 @@ impl Game {
             // Must check both board occupancy AND hard-dropping cards targeting the same position
             let mut final_y = current_card.position.y;
             let card_x = current_card.position.x;
-            
+
             for test_y in (current_card.position.y + 1)..self.board.height {
                 // Check if the board cell is empty
                 let board_empty = self.board.is_cell_empty(card_x, test_y);
-                
+
                 // Check if any hard-dropping card is already targeting this position
-                let no_hard_drop_conflict = !self.hard_dropping_cards.iter().any(|card| {
-                    card.position.x == card_x && card.target.y == test_y
-                });
-                
+                let no_hard_drop_conflict = !self
+                    .hard_dropping_cards
+                    .iter()
+                    .any(|card| card.position.x == card_x && card.target.y == test_y);
+
                 if board_empty && no_hard_drop_conflict {
                     final_y = test_y;
                 } else {
@@ -508,7 +513,7 @@ impl Game {
                 // Store the X position where the player was positioning this card
                 // This ensures the next card spawns at the player's current position
                 self.last_dropped_x = Some(current_card.position.x);
-                
+
                 // Set up the card for fast animated falling
                 current_card.target.y = final_y;
                 current_card.is_falling = true;
@@ -745,12 +750,12 @@ mod tests {
         pub fn create_test_game() -> (Game, TempDir) {
             let temp_dir = tempfile::tempdir().expect("Failed to create temp directory");
             let db_path = temp_dir.path().join("test_game.db");
-            
+
             let game = Game::builder()
                 .database_path(&db_path)
                 .build()
                 .expect("Failed to create test game");
-                
+
             (game, temp_dir)
         }
 
@@ -761,29 +766,30 @@ mod tests {
         ) -> (Game, TempDir) {
             let temp_dir = tempfile::tempdir().expect("Failed to create temp directory");
             let db_path = temp_dir.path().join("test_game.db");
-            
+
             let game = Game::builder()
                 .board_size(width, height)
                 .difficulty(difficulty)
                 .database_path(&db_path)
                 .build()
                 .expect("Failed to create test game");
-                
+
             (game, temp_dir)
         }
 
         pub fn create_test_playing_card() -> PlayingCard {
             PlayingCard::builder(
                 Card::new(crate::models::Suit::Hearts, crate::models::Value::Ace),
-                Position { x: 2, y: 1 }
-            ).build()
+                Position { x: 2, y: 1 },
+            )
+            .build()
         }
     }
 
     #[test]
     fn test_game_builder_basic() {
         let (game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         assert_eq!(game.board.width, 10); // Default width
         assert_eq!(game.board.height, 15); // Default height
         assert_eq!(game.difficulty, Difficulty::Easy); // Default difficulty
@@ -795,8 +801,9 @@ mod tests {
 
     #[test]
     fn test_game_builder_with_custom_config() {
-        let (game, _temp_dir) = test_fixtures::create_test_game_with_config(8, 12, Difficulty::Hard);
-        
+        let (game, _temp_dir) =
+            test_fixtures::create_test_game_with_config(8, 12, Difficulty::Hard);
+
         assert_eq!(game.board.width, 8);
         assert_eq!(game.board.height, 12);
         assert_eq!(game.difficulty, Difficulty::Hard);
@@ -806,7 +813,7 @@ mod tests {
     fn test_game_builder_all_options() {
         let temp_dir = tempfile::tempdir().expect("Failed to create temp directory");
         let db_path = temp_dir.path().join("test_game.db");
-        
+
         let game = Game::builder()
             .board_size(6, 10)
             .cell_size(32)
@@ -816,7 +823,7 @@ mod tests {
             .database_path(&db_path)
             .build()
             .expect("Failed to create game");
-        
+
         assert_eq!(game.board.width, 6);
         assert_eq!(game.board.height, 10);
         assert_eq!(game.board.cell_size, 32);
@@ -834,7 +841,7 @@ mod tests {
     #[test]
     fn test_game_state_transitions() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         // Should start in StartScreen state
         assert!(game.is_start_screen());
         assert!(!game.is_playing());
@@ -871,16 +878,16 @@ mod tests {
     #[test]
     fn test_start_game() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         game.start_game(Difficulty::Hard);
-        
+
         assert!(game.is_playing());
         assert_eq!(game.difficulty, Difficulty::Hard);
         assert_eq!(game.score, 0);
         assert_eq!(game.fall_speed, Duration::from_millis(1000));
         assert!(game.current_card.is_some());
         assert!(!game.pending_audio_events.is_empty());
-        
+
         // Should have StartGame audio event
         let audio_events = game.take_pending_audio_events();
         assert!(audio_events.contains(&AudioEvent::StartGame));
@@ -889,14 +896,14 @@ mod tests {
     #[test]
     fn test_spawn_new_card() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         // Ensure we have a next card
         assert!(game.next_card.is_some());
-        
+
         game.spawn_new_card();
-        
+
         assert!(game.current_card.is_some());
-        
+
         let current_card = game.current_card.as_ref().unwrap();
         assert_eq!(current_card.position.y, 0); // Should spawn at top
         assert!(current_card.position.x >= 0 && current_card.position.x < game.board.width);
@@ -906,14 +913,14 @@ mod tests {
     fn test_move_current_card_left() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
         game.current_card = Some(test_fixtures::create_test_playing_card());
-        
+
         let initial_x = game.current_card.as_ref().unwrap().position.x;
         game.move_current_card_left();
-        
+
         if initial_x > 0 {
             // Movement updates target, not position
             assert_eq!(game.current_card.as_ref().unwrap().target.x, initial_x - 1);
-            
+
             // Should have MoveLeft audio event
             let audio_events = game.take_pending_audio_events();
             assert!(audio_events.contains(&AudioEvent::MoveLeft));
@@ -924,14 +931,14 @@ mod tests {
     fn test_move_current_card_right() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
         game.current_card = Some(test_fixtures::create_test_playing_card());
-        
+
         let initial_x = game.current_card.as_ref().unwrap().position.x;
         game.move_current_card_right();
-        
+
         if initial_x < game.board.width - 1 {
             // Movement updates target, not position
             assert_eq!(game.current_card.as_ref().unwrap().target.x, initial_x + 1);
-            
+
             // Should have MoveRight audio event
             let audio_events = game.take_pending_audio_events();
             assert!(audio_events.contains(&AudioEvent::MoveRight));
@@ -944,10 +951,10 @@ mod tests {
         let mut card = test_fixtures::create_test_playing_card();
         card.position.y = 5; // Not at bottom
         game.current_card = Some(card);
-        
+
         let initial_y = game.current_card.as_ref().unwrap().position.y;
         game.move_current_card_down();
-        
+
         if initial_y < game.board.height - 1 {
             // Should have moved down
             if game.current_card.is_some() {
@@ -965,17 +972,17 @@ mod tests {
     #[test]
     fn test_is_move_valid() {
         let (game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         // Valid moves within bounds
         assert!(game.is_move_valid(2, 2, 3, 2)); // Right
         assert!(game.is_move_valid(2, 2, 1, 2)); // Left
         assert!(game.is_move_valid(2, 2, 2, 3)); // Down
-        
+
         // Invalid moves out of bounds
         assert!(!game.is_move_valid(0, 0, -1, 0)); // Left out of bounds
         assert!(!game.is_move_valid(9, 0, 10, 0)); // Right out of bounds (width=10)
         assert!(!game.is_move_valid(0, 14, 0, 15)); // Down out of bounds (height=15)
-        
+
         // Note: is_move_valid only checks bounds and emptiness, not game rules like "no up movement"
         // Game rules are enforced by the higher-level movement functions
         assert!(game.is_move_valid(2, 2, 2, 1)); // Up is valid in terms of board bounds
@@ -987,12 +994,12 @@ mod tests {
         let mut card = test_fixtures::create_test_playing_card();
         card.position.y = 1; // Near top
         game.current_card = Some(card);
-        
+
         game.hard_drop();
-        
+
         // Card should be placed at bottom and new card spawned
         assert!(game.current_card.is_some()); // New card spawned
-        
+
         // Should have HardDrop audio event
         let audio_events = game.take_pending_audio_events();
         assert!(audio_events.contains(&AudioEvent::HardDrop));
@@ -1001,13 +1008,13 @@ mod tests {
     #[test]
     fn test_add_initial() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         game.add_initial('A');
         game.add_initial('B');
         game.add_initial('C');
-        
+
         assert_eq!(game.player_initials, "ABC");
-        
+
         // Should limit to 3 characters
         game.add_initial('D');
         assert_eq!(game.player_initials, "ABC");
@@ -1016,18 +1023,18 @@ mod tests {
     #[test]
     fn test_remove_initial() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         game.player_initials = "ABC".to_string();
-        
+
         game.remove_initial();
         assert_eq!(game.player_initials, "AB");
-        
+
         game.remove_initial();
         assert_eq!(game.player_initials, "A");
-        
+
         game.remove_initial();
         assert_eq!(game.player_initials, "");
-        
+
         // Should not crash when empty
         game.remove_initial();
         assert_eq!(game.player_initials, "");
@@ -1036,15 +1043,15 @@ mod tests {
     #[test]
     fn test_audio_events() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         game.add_audio_event(AudioEvent::DropCard);
         game.add_audio_event(AudioEvent::MakeMatch);
-        
+
         let events = game.take_pending_audio_events();
         assert_eq!(events.len(), 2);
         assert!(events.contains(&AudioEvent::DropCard));
         assert!(events.contains(&AudioEvent::MakeMatch));
-        
+
         // Should be empty after taking
         let events2 = game.take_pending_audio_events();
         assert!(events2.is_empty());
@@ -1053,16 +1060,16 @@ mod tests {
     #[test]
     fn test_take_pending_explosions() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         let card = Card::new(crate::models::Suit::Hearts, crate::models::Value::King);
         game.pending_explosions.push((1, 2, card));
         game.pending_explosions.push((3, 4, card));
-        
+
         let explosions = game.take_pending_explosions();
         assert_eq!(explosions.len(), 2);
         assert_eq!(explosions[0], (1, 2, card));
         assert_eq!(explosions[1], (3, 4, card));
-        
+
         // Should be empty after taking
         let explosions2 = game.take_pending_explosions();
         assert!(explosions2.is_empty());
@@ -1072,9 +1079,9 @@ mod tests {
     fn test_increase_speed() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
         let initial_speed = game.fall_speed;
-        
+
         game.increase_speed();
-        
+
         assert!(game.fall_speed < initial_speed);
         assert!(game.fall_speed >= Duration::from_millis(100)); // Should not go below minimum
     }
@@ -1082,21 +1089,23 @@ mod tests {
     #[test]
     fn test_save_high_score() {
         let (mut game, _temp_dir) = test_fixtures::create_test_game();
-        
+
         game.player_initials = "TST".to_string();
         game.score = 1500;
         game.difficulty = Difficulty::Hard;
-        
+
         game.save_high_score();
-        
+
         // Should reload high scores
         assert!(!game.high_scores.is_empty());
-        
+
         // Find our score
-        let our_score = game.high_scores.iter()
+        let our_score = game
+            .high_scores
+            .iter()
             .find(|hs| hs.player_initials == "TST" && hs.score == 1500)
             .expect("Should find our high score");
-        
+
         assert_eq!(our_score.difficulty, "Hard");
     }
 
@@ -1106,25 +1115,25 @@ mod tests {
         let event1 = AudioEvent::StartGame;
         let event2 = AudioEvent::StartGame;
         let event3 = AudioEvent::DropCard;
-        
+
         // Test Debug
         assert!(!format!("{:?}", event1).is_empty());
-        
+
         // Test Clone
         let cloned = event1.clone();
         assert_eq!(event1, cloned);
-        
+
         // Test Copy
         let copied = event1;
         assert_eq!(event1, copied);
-        
+
         // Test Hash and Eq
         use std::collections::HashMap;
         let mut map = HashMap::new();
         map.insert(event1, "test");
         assert!(map.contains_key(&event2));
         assert!(!map.contains_key(&event3));
-        
+
         // Test PartialEq
         assert_eq!(event1, event2);
         assert_ne!(event1, event3);
@@ -1136,42 +1145,42 @@ mod tests {
         #[test]
         fn test_full_game_flow() {
             let (mut game, _temp_dir) = test_fixtures::create_test_game();
-            
+
             // Start game
             game.start_game(Difficulty::Easy);
             assert!(game.is_playing());
-            
+
             // Should have a current card
             assert!(game.current_card.is_some());
-            
+
             // Move card around
             game.move_current_card_left();
             game.move_current_card_right();
             game.move_current_card_down();
-            
+
             // Hard drop
             game.hard_drop();
-            
+
             // Should still have a card (new one spawned)
             assert!(game.current_card.is_some());
-            
+
             // Transition states
             game.transition_to_paused();
             assert!(game.is_paused());
-            
+
             game.transition_to_playing();
             assert!(game.is_playing());
-            
+
             // End game
             game.transition_to_game_over();
             assert!(game.is_game_over());
-            
+
             // Add initials and save score
             game.add_initial('T');
             game.add_initial('S');
             game.add_initial('T');
             game.save_high_score();
-            
+
             // Return to start
             game.transition_to_start_screen();
             assert!(game.is_start_screen());
@@ -1181,28 +1190,30 @@ mod tests {
         fn test_game_persistence() {
             let temp_dir = tempfile::tempdir().expect("Failed to create temp directory");
             let db_path = temp_dir.path().join("persistence_test.db");
-            
+
             // Create game and save a score
             {
                 let mut game = Game::builder()
                     .database_path(&db_path)
                     .build()
                     .expect("Failed to create game");
-                
+
                 game.player_initials = "PER".to_string();
                 game.score = 999;
                 game.save_high_score();
             }
-            
+
             // Create new game instance and verify score persists
             {
                 let game = Game::builder()
                     .database_path(&db_path)
                     .build()
                     .expect("Failed to create game");
-                
+
                 assert!(!game.high_scores.is_empty());
-                let persistent_score = game.high_scores.iter()
+                let persistent_score = game
+                    .high_scores
+                    .iter()
                     .find(|hs| hs.player_initials == "PER" && hs.score == 999);
                 assert!(persistent_score.is_some());
             }
@@ -1211,7 +1222,8 @@ mod tests {
         #[test]
         fn test_difficulty_variations() {
             for difficulty in [Difficulty::Easy, Difficulty::Hard] {
-                let (game, _temp_dir) = test_fixtures::create_test_game_with_config(8, 12, difficulty);
+                let (game, _temp_dir) =
+                    test_fixtures::create_test_game_with_config(8, 12, difficulty);
                 assert_eq!(game.difficulty, difficulty);
                 assert_eq!(game.board.width, 8);
                 assert_eq!(game.board.height, 12);

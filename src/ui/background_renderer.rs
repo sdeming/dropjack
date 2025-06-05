@@ -1,3 +1,4 @@
+use crate::ui::constants::*;
 use crate::ui::drawing::{BOARD_OFFSET_X, BOARD_OFFSET_Y, SCREEN_HEIGHT, SCREEN_WIDTH};
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
@@ -17,7 +18,7 @@ struct GradientCache {
 
 impl GradientCache {
     fn new() -> Self {
-        let gradient_steps = 40;
+        let gradient_steps = BACKGROUND_GRADIENT_STEPS;
         let step_height = SCREEN_HEIGHT / gradient_steps;
 
         // Pre-compute all ratios and colors
@@ -28,15 +29,24 @@ impl GradientCache {
         let gradient_colors: Vec<Color> = step_ratios
             .iter()
             .map(|&ratio| {
-                let r = (8.0 + ratio * 12.0 + (ratio * std::f32::consts::PI).sin() * 2.0) as u8;
-                let g = (15.0 + ratio * 15.0 + (ratio * 2.1).sin() * 3.0) as u8;
-                let b = (25.0 + ratio * 20.0 + (ratio * 1.7).sin() * 4.0) as u8;
+                let r = (BACKGROUND_GRADIENT_R_BASE
+                    + ratio * BACKGROUND_GRADIENT_R_RANGE
+                    + (ratio * std::f32::consts::PI).sin() * BACKGROUND_GRADIENT_R_SIN_MULTIPLIER)
+                    as u8;
+                let g = (BACKGROUND_GRADIENT_G_BASE
+                    + ratio * BACKGROUND_GRADIENT_G_RANGE
+                    + (ratio * BACKGROUND_GRADIENT_G_SIN_FREQUENCY).sin()
+                        * BACKGROUND_GRADIENT_G_SIN_MULTIPLIER) as u8;
+                let b = (BACKGROUND_GRADIENT_B_BASE
+                    + ratio * BACKGROUND_GRADIENT_B_RANGE
+                    + (ratio * BACKGROUND_GRADIENT_B_SIN_FREQUENCY).sin()
+                        * BACKGROUND_GRADIENT_B_SIN_MULTIPLIER) as u8;
                 Color::new(r, g, b, 255)
             })
             .collect();
 
         // Pre-compute particle positions and properties
-        let particle_positions: Vec<(i32, i32)> = (0..25)
+        let particle_positions: Vec<(i32, i32)> = (0..BACKGROUND_PARTICLE_COUNT)
             .map(|i| {
                 let x = (i * 127) % SCREEN_WIDTH;
                 let y = (i * 211) % SCREEN_HEIGHT;
@@ -44,9 +54,19 @@ impl GradientCache {
             })
             .collect();
 
-        let particle_alphas: Vec<u8> = (0..25).map(|i| ((i * 17) % 35 + 10) as u8).collect();
+        let particle_alphas: Vec<u8> = (0..BACKGROUND_PARTICLE_COUNT)
+            .map(|i| {
+                ((i * 17) % BACKGROUND_PARTICLE_ALPHA_RANGE + BACKGROUND_PARTICLE_ALPHA_BASE) as u8
+            })
+            .collect();
 
-        let particle_sizes: Vec<f32> = (0..25).map(|i| 0.3 + ((i * 13) % 7) as f32 * 0.1).collect();
+        let particle_sizes: Vec<f32> = (0..BACKGROUND_PARTICLE_COUNT)
+            .map(|i| {
+                BACKGROUND_PARTICLE_SIZE_BASE
+                    + ((i * 13) % BACKGROUND_PARTICLE_SIZE_MULTIPLIER) as f32
+                        * BACKGROUND_PARTICLE_SIZE_RANGE
+            })
+            .collect();
 
         Self {
             gradient_steps,
@@ -71,7 +91,7 @@ struct BoardCache {
 
 impl BoardCache {
     fn new() -> Self {
-        let gradient_steps = 25;
+        let gradient_steps = BOARD_GRADIENT_STEPS;
 
         // Pre-compute ratios for x and y
         let x_ratios: Vec<f32> = (0..gradient_steps)
@@ -82,11 +102,14 @@ impl BoardCache {
             .collect();
 
         // Pre-compute texture coordinates and properties
-        let texture_coords: Vec<(i32, i32)> = (0..120).map(|i| (i * 47, i * 83)).collect();
+        let texture_coords: Vec<(i32, i32)> =
+            (0..BOARD_TEXTURE_COUNT).map(|i| (i * 47, i * 83)).collect();
 
-        let texture_alphas: Vec<u8> = (0..120).map(|i| ((i * 19) % 15 + 25) as u8).collect();
+        let texture_alphas: Vec<u8> = (0..BOARD_TEXTURE_COUNT)
+            .map(|i| ((i * 19) % 15 + 25) as u8)
+            .collect();
 
-        let texture_sizes: Vec<f32> = (0..120)
+        let texture_sizes: Vec<f32> = (0..BOARD_TEXTURE_COUNT)
             .map(|i| 0.2 + ((i * 11) % 5) as f32 * 0.1)
             .collect();
 
@@ -122,7 +145,7 @@ impl BackgroundRenderer {
         }
 
         // Use pre-computed particle properties
-        for i in 0..25 {
+        for i in 0..BACKGROUND_PARTICLE_COUNT as usize {
             let (x, y) = cache.particle_positions[i];
             let alpha = cache.particle_alphas[i];
             let size = cache.particle_sizes[i];
@@ -144,59 +167,59 @@ impl BackgroundRenderer {
         // Enhanced decorative frame system with more depth
         // Outermost shadow
         d.draw_rectangle(
-            BOARD_OFFSET_X - 12,
-            BOARD_OFFSET_Y - 12,
-            board_pixel_width + 24,
-            board_pixel_height + 24,
-            Color::new(0, 0, 0, 100),
+            BOARD_OFFSET_X - BOARD_SHADOW_OFFSET,
+            BOARD_OFFSET_Y - BOARD_SHADOW_OFFSET,
+            board_pixel_width + BOARD_SHADOW_SIZE,
+            board_pixel_height + BOARD_SHADOW_SIZE,
+            BOARD_SHADOW_COLOR,
         );
 
         // Outer dark wood frame
         d.draw_rectangle(
-            BOARD_OFFSET_X - 10,
-            BOARD_OFFSET_Y - 10,
-            board_pixel_width + 20,
-            board_pixel_height + 20,
-            Color::new(80, 40, 20, 255),
+            BOARD_OFFSET_X - BOARD_OUTER_FRAME_OFFSET,
+            BOARD_OFFSET_Y - BOARD_OUTER_FRAME_OFFSET,
+            board_pixel_width + BOARD_OUTER_FRAME_SIZE,
+            board_pixel_height + BOARD_OUTER_FRAME_SIZE,
+            BOARD_OUTER_FRAME_COLOR,
         );
 
         // Middle wood frame with grain effect
         d.draw_rectangle(
-            BOARD_OFFSET_X - 8,
-            BOARD_OFFSET_Y - 8,
-            board_pixel_width + 16,
-            board_pixel_height + 16,
-            Color::new(139, 69, 19, 255),
+            BOARD_OFFSET_X - BOARD_MIDDLE_FRAME_OFFSET,
+            BOARD_OFFSET_Y - BOARD_MIDDLE_FRAME_OFFSET,
+            board_pixel_width + BOARD_MIDDLE_FRAME_SIZE,
+            board_pixel_height + BOARD_MIDDLE_FRAME_SIZE,
+            BOARD_MIDDLE_FRAME_COLOR,
         );
 
         // Add wood grain lines for realism
-        for i in 0..8 {
-            let grain_offset = i * 2;
+        for i in 0..BOARD_GRAIN_LINES {
+            let grain_offset = i * BOARD_GRAIN_SPACING;
             d.draw_line(
-                BOARD_OFFSET_X - 8 + grain_offset,
-                BOARD_OFFSET_Y - 8,
-                BOARD_OFFSET_X - 8 + grain_offset,
-                BOARD_OFFSET_Y + board_pixel_height + 8,
-                Color::new(110, 55, 15, 100),
+                BOARD_OFFSET_X - BOARD_MIDDLE_FRAME_OFFSET + grain_offset,
+                BOARD_OFFSET_Y - BOARD_MIDDLE_FRAME_OFFSET,
+                BOARD_OFFSET_X - BOARD_MIDDLE_FRAME_OFFSET + grain_offset,
+                BOARD_OFFSET_Y + board_pixel_height + BOARD_MIDDLE_FRAME_OFFSET,
+                BOARD_GRAIN_COLOR,
             );
         }
 
         // Inner bevel frame
         d.draw_rectangle(
-            BOARD_OFFSET_X - 6,
-            BOARD_OFFSET_Y - 6,
-            board_pixel_width + 12,
-            board_pixel_height + 12,
-            Color::new(160, 82, 45, 255),
+            BOARD_OFFSET_X - BOARD_INNER_FRAME_OFFSET,
+            BOARD_OFFSET_Y - BOARD_INNER_FRAME_OFFSET,
+            board_pixel_width + BOARD_INNER_FRAME_SIZE,
+            board_pixel_height + BOARD_INNER_FRAME_SIZE,
+            BOARD_INNER_FRAME_COLOR,
         );
 
         // Innermost highlight frame
         d.draw_rectangle(
-            BOARD_OFFSET_X - 4,
-            BOARD_OFFSET_Y - 4,
-            board_pixel_width + 8,
-            board_pixel_height + 8,
-            Color::new(210, 180, 140, 255),
+            BOARD_OFFSET_X - BOARD_HIGHLIGHT_FRAME_OFFSET,
+            BOARD_OFFSET_Y - BOARD_HIGHLIGHT_FRAME_OFFSET,
+            board_pixel_width + BOARD_HIGHLIGHT_FRAME_SIZE,
+            board_pixel_height + BOARD_HIGHLIGHT_FRAME_SIZE,
+            BOARD_HIGHLIGHT_FRAME_COLOR,
         );
 
         let cache = &*BOARD_CACHE;

@@ -72,7 +72,12 @@ impl ParticleBuilder {
 }
 
 impl Particle {
-    pub fn builder(position: Vector2, velocity: Vector2, color: Color, life_time: f32) -> ParticleBuilder {
+    pub fn builder(
+        position: Vector2,
+        velocity: Vector2,
+        color: Color,
+        life_time: f32,
+    ) -> ParticleBuilder {
         ParticleBuilder::new(position, velocity, color, life_time)
     }
 
@@ -158,7 +163,7 @@ mod tests {
     #[test]
     fn test_particle_creation() {
         let particle = test_fixtures::create_test_particle();
-        
+
         assert_eq!(particle.position.x, 100.0);
         assert_eq!(particle.position.y, 200.0);
         assert_eq!(particle.velocity.x, 50.0);
@@ -183,7 +188,7 @@ mod tests {
         assert_eq!(particle.color, color);
         assert_eq!(particle.life_time, life_time);
         assert_eq!(particle.max_life_time, life_time);
-        
+
         // Test defaults
         assert_eq!(particle.acceleration, Vector2::new(0.0, 200.0)); // Default gravity
         assert_eq!(particle.size, 2.0); // Default size
@@ -193,12 +198,12 @@ mod tests {
     #[test]
     fn test_particle_builder_with_acceleration() {
         let acceleration = Vector2::new(5.0, 150.0);
-        
+
         let particle = Particle::builder(
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::WHITE,
-            1.0
+            1.0,
         )
         .acceleration(acceleration)
         .build();
@@ -209,12 +214,12 @@ mod tests {
     #[test]
     fn test_particle_builder_with_size() {
         let size = 5.5;
-        
+
         let particle = Particle::builder(
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::GREEN,
-            1.0
+            1.0,
         )
         .size(size)
         .build();
@@ -225,12 +230,12 @@ mod tests {
     #[test]
     fn test_particle_builder_with_angular_velocity() {
         let angular_velocity = 3.14;
-        
+
         let particle = Particle::builder(
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::YELLOW,
-            1.0
+            1.0,
         )
         .angular_velocity(angular_velocity)
         .build();
@@ -269,7 +274,7 @@ mod tests {
             Vector2::new(0.0, 0.0),
             Vector2::new(10.0, 0.0),
             Color::RED,
-            2.0
+            2.0,
         )
         .acceleration(Vector2::new(0.0, 10.0))
         .build();
@@ -294,7 +299,7 @@ mod tests {
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::BLUE,
-            1.0
+            1.0,
         )
         .angular_velocity(5.0)
         .build();
@@ -311,8 +316,9 @@ mod tests {
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::new(255, 0, 0, 255),
-            1.0
-        ).build();
+            1.0,
+        )
+        .build();
 
         // Update half lifetime
         let is_alive = particle.update(0.5);
@@ -339,8 +345,9 @@ mod tests {
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::new(255, 255, 255, initial_alpha),
-            2.0
-        ).build();
+            2.0,
+        )
+        .build();
 
         // Update to half lifetime
         particle.update(1.0); // Half of 2.0 seconds
@@ -356,8 +363,9 @@ mod tests {
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::WHITE,
-            0.1 // Very short lifetime
-        ).build();
+            0.1, // Very short lifetime
+        )
+        .build();
 
         // Should be alive initially
         assert!(particle.life_time > 0.0);
@@ -371,14 +379,11 @@ mod tests {
     #[test]
     fn test_particle_with_different_colors() {
         let colors = test_fixtures::create_test_colors();
-        
+
         for color in colors {
-            let particle = Particle::builder(
-                Vector2::new(0.0, 0.0),
-                Vector2::new(0.0, 0.0),
-                color,
-                1.0
-            ).build();
+            let particle =
+                Particle::builder(Vector2::new(0.0, 0.0), Vector2::new(0.0, 0.0), color, 1.0)
+                    .build();
 
             assert_eq!(particle.color, color);
         }
@@ -390,8 +395,9 @@ mod tests {
             Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 0.0),
             Color::RED,
-            0.0 // Zero lifetime
-        ).build();
+            0.0, // Zero lifetime
+        )
+        .build();
 
         let is_alive = particle.update(0.01);
         assert!(!is_alive);
@@ -413,8 +419,9 @@ mod tests {
             Vector2::new(1.0, 2.0),
             Vector2::new(3.0, 4.0),
             Color::ORANGE,
-            5.0
-        ).build();
+            5.0,
+        )
+        .build();
 
         // Test that defaults are applied correctly
         assert_eq!(particle.acceleration, Vector2::new(0.0, 200.0));
@@ -434,7 +441,7 @@ mod tests {
                 Vector2::new(100.0, 50.0),
                 Vector2::new(20.0, -30.0),
                 Color::new(255, 100, 50, 255),
-                1.0
+                1.0,
             )
             .acceleration(Vector2::new(0.0, 98.0)) // Gravity
             .size(3.5)
@@ -447,33 +454,58 @@ mod tests {
             let initial_y = particle.position.y;
 
             // Simulate particle for its lifetime
-            while time_step < 1.0 && updates < 200 { // Safety limit
+            while time_step < 1.0 && updates < 200 {
+                // Safety limit
                 let is_alive = particle.update(delta_time);
-                
+
                 if !is_alive {
                     break;
                 }
-                
+
                 // Verify physics are working - particle can move up initially then down due to gravity
                 // Just check that it's moving and rotating
                 assert!(particle.rotation >= 0.0); // Should rotate
-                
+
                 time_step += delta_time;
                 updates += 1;
             }
 
             // Should have completed simulation
-            assert!(updates < 200, "Simulation should complete within reasonable time");
-            assert!(particle.life_time <= 0.0, "Particle should be dead after simulation");
+            assert!(
+                updates < 200,
+                "Simulation should complete within reasonable time"
+            );
+            assert!(
+                particle.life_time <= 0.0,
+                "Particle should be dead after simulation"
+            );
         }
 
         #[test]
         fn test_multiple_particles_independence() {
             // Test that multiple particles can be created and updated independently
             let mut particles = vec![
-                Particle::builder(Vector2::new(0.0, 0.0), Vector2::new(10.0, 0.0), Color::RED, 1.0).build(),
-                Particle::builder(Vector2::new(10.0, 10.0), Vector2::new(-5.0, 5.0), Color::BLUE, 2.0).build(),
-                Particle::builder(Vector2::new(20.0, 20.0), Vector2::new(0.0, -10.0), Color::GREEN, 0.5).build(),
+                Particle::builder(
+                    Vector2::new(0.0, 0.0),
+                    Vector2::new(10.0, 0.0),
+                    Color::RED,
+                    1.0,
+                )
+                .build(),
+                Particle::builder(
+                    Vector2::new(10.0, 10.0),
+                    Vector2::new(-5.0, 5.0),
+                    Color::BLUE,
+                    2.0,
+                )
+                .build(),
+                Particle::builder(
+                    Vector2::new(20.0, 20.0),
+                    Vector2::new(0.0, -10.0),
+                    Color::GREEN,
+                    0.5,
+                )
+                .build(),
             ];
 
             let initial_positions: Vec<Vector2> = particles.iter().map(|p| p.position).collect();
@@ -485,7 +517,11 @@ mod tests {
 
             // Verify they moved independently
             for (i, particle) in particles.iter().enumerate() {
-                assert_ne!(particle.position, initial_positions[i], "Particle {} should have moved", i);
+                assert_ne!(
+                    particle.position, initial_positions[i],
+                    "Particle {} should have moved",
+                    i
+                );
             }
 
             // Verify different lifetimes

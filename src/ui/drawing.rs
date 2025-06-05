@@ -1,8 +1,6 @@
-pub const SCREEN_WIDTH: i32 = 1280;
-pub const SCREEN_HEIGHT: i32 = 800;
-pub const BOARD_OFFSET_X: i32 = 100;
-pub const BOARD_OFFSET_Y: i32 = 50;
-pub const INFO_PANEL_X: i32 = 700;
-pub const INFO_PANEL_WIDTH: i32 = 520;
+// Re-export common constants from the constants module
+pub use crate::ui::constants::{
+    BOARD_OFFSET_X, BOARD_OFFSET_Y, INFO_PANEL_WIDTH, INFO_PANEL_X, SCREEN_HEIGHT, SCREEN_WIDTH,
+};
 
 pub struct AtlasCardRenderer;

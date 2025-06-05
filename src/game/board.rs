@@ -275,7 +275,7 @@ impl Board {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{Suit, Value, Card, Difficulty};
+    use crate::models::{Card, Difficulty, Suit, Value};
     use std::time::{Duration, Instant};
 
     // Test fixtures for creating boards and cards for testing
@@ -292,16 +292,16 @@ mod tests {
 
         pub fn create_cards_for_21_combination() -> Vec<Card> {
             vec![
-                Card::new(Suit::Hearts, Value::Ten),   // 10
-                Card::new(Suit::Hearts, Value::Five),  // 5
-                Card::new(Suit::Hearts, Value::Six),   // 6 (10 + 5 + 6 = 21)
+                Card::new(Suit::Hearts, Value::Ten),  // 10
+                Card::new(Suit::Hearts, Value::Five), // 5
+                Card::new(Suit::Hearts, Value::Six),  // 6 (10 + 5 + 6 = 21)
             ]
         }
 
         pub fn create_cards_for_ace_combination() -> Vec<Card> {
             vec![
-                Card::new(Suit::Spades, Value::Ace),   // 1 or 11
-                Card::new(Suit::Spades, Value::King),  // 10 (Ace as 11 + 10 = 21)
+                Card::new(Suit::Spades, Value::Ace),  // 1 or 11
+                Card::new(Suit::Spades, Value::King), // 10 (Ace as 11 + 10 = 21)
             ]
         }
 
@@ -428,7 +428,7 @@ mod tests {
         board.place_card(2, 1, cards[2]); // 6
 
         let removed_positions = board.check_combinations(Difficulty::Easy);
-        
+
         // Should find the combination that sums to 21
         assert!(!removed_positions.is_empty());
         assert!(removed_positions.contains(&(0, 1)));
@@ -446,7 +446,7 @@ mod tests {
         board.place_card(1, 0, cards[1]); // King
 
         let removed_positions = board.check_combinations(Difficulty::Easy);
-        
+
         // Should find the combination
         assert_eq!(removed_positions.len(), 2);
         assert!(removed_positions.contains(&(0, 0)));
@@ -524,7 +524,7 @@ mod tests {
         assert_eq!(removed_cards.len(), 2);
         assert!(board.grid[2][1].is_none());
         assert!(board.grid[4][3].is_none());
-        
+
         // Check removal tracking is cleared
         assert!(board.marked_for_removal[2][1].is_none());
         assert!(board.marked_for_removal[4][3].is_none());
@@ -565,10 +565,10 @@ mod tests {
 
         // Gravity should have been applied
         assert!(changes_made);
-        
+
         // Cards should move down
         assert!(board.falling_cards.len() > 0);
-        
+
         // Check final positions in grid after gravity settles
         assert_eq!(board.grid[7][2], Some(card1)); // Bottom
         assert_eq!(board.grid[6][2], Some(card2)); // Above bottom
@@ -612,7 +612,7 @@ mod tests {
 
         // Visual position should have moved down
         assert!(board.falling_cards[0].visual_y > 100.0);
-        
+
         // If we update enough times, animation should complete
         for _ in 0..100 {
             board.update_falling_cards();
@@ -620,9 +620,12 @@ mod tests {
                 break;
             }
         }
-        
+
         // Should eventually reach target
-        assert_eq!(board.falling_cards[0].visual_y, (7 * board.cell_size) as f32);
+        assert_eq!(
+            board.falling_cards[0].visual_y,
+            (7 * board.cell_size) as f32
+        );
         assert!(!board.falling_cards[0].is_animating);
     }
 
@@ -649,7 +652,7 @@ mod tests {
 
         // Create a more complex pattern
         // Row 1: [A♠, 5♠, _, 3♠]  - Ace(1) + 5 + 3 = 9, need 12 more
-        // Row 2: [_, Q♠, _, _]    - Queen = 10, so we have 9 + 10 = 19, need 2 more  
+        // Row 2: [_, Q♠, _, _]    - Queen = 10, so we have 9 + 10 = 19, need 2 more
         // Row 3: [_, 2♠, _, _]    - 2 completes it: 9 + 10 + 2 = 21
         board.place_card(0, 1, Card::new(Suit::Spades, Value::Ace));
         board.place_card(1, 1, Card::new(Suit::Spades, Value::Five));
@@ -658,8 +661,8 @@ mod tests {
         board.place_card(1, 3, Card::new(Suit::Spades, Value::Two));
 
         let combinations = board.check_combinations(Difficulty::Hard);
-        
-        // Should find the path: Ace(1) -> 5 -> Queen(10) -> 2 = 18, or 
+
+        // Should find the path: Ace(1) -> 5 -> Queen(10) -> 2 = 18, or
         // Try different path with Ace as 11: not possible here as would exceed 21
         // The algorithm should find valid 21 combinations
         if !combinations.is_empty() {
@@ -674,7 +677,7 @@ mod tests {
         #[test]
         fn test_full_game_cycle() {
             let mut board = test_fixtures::create_test_board();
-            
+
             // Simulate a game cycle
             // 1. Place some cards
             let cards = [
@@ -683,23 +686,23 @@ mod tests {
                 (1, 4, Card::new(Suit::Hearts, Value::Six)),
                 (2, 7, Card::new(Suit::Spades, Value::King)),
             ];
-            
+
             for &(x, y, card) in &cards {
                 board.place_card(x, y, card);
             }
-            
+
             // 2. Check for combinations
             let combinations = board.check_combinations(Difficulty::Easy);
-            
+
             if !combinations.is_empty() {
                 // 3. Mark for removal
                 let removal_time = Instant::now();
                 board.mark_cards_for_removal(combinations, removal_time);
-                
+
                 // 4. Process removals
                 let removed = board.process_marked_removals();
                 assert!(!removed.is_empty());
-                
+
                 // 5. Apply gravity
                 let gravity_applied = board.apply_gravity();
                 if gravity_applied {
@@ -713,7 +716,7 @@ mod tests {
                     }
                 }
             }
-            
+
             // Game should be in a valid state
             assert!(!board.is_game_over() || board.grid[0].iter().any(|cell| cell.is_some()));
         }

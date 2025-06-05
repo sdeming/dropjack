@@ -3,6 +3,7 @@ pub mod animated_background;
 mod atlas_card_renderer;
 mod background_renderer;
 mod card_renderer;
+pub mod constants;
 pub mod drawing;
 mod drawing_helpers;
 pub mod input_handler;
@@ -107,8 +108,8 @@ impl GameUI {
             title_font,
             card_atlas,
             particle_system: ParticleSystem::builder()
-                .particle_capacity(150)  // Increase capacity for more particles
-                .explosion_particle_count(40)  // Slightly more particles per explosion
+                .particle_capacity(150) // Increase capacity for more particles
+                .explosion_particle_count(40) // Slightly more particles per explosion
                 .build(),
             input_handler: InputHandler::new(),
             last_frame_time: std::time::Instant::now(),

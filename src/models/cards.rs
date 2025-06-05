@@ -266,20 +266,16 @@ mod tests {
     #[test]
     fn test_deck_contains_all_cards() {
         let deck = Deck::new();
-        
+
         // Check that we have exactly 4 of each value
         for value in Value::all() {
-            let count = deck.cards.iter()
-                .filter(|card| card.value == value)
-                .count();
+            let count = deck.cards.iter().filter(|card| card.value == value).count();
             assert_eq!(count, 4, "Should have 4 cards of value {:?}", value);
         }
 
         // Check that we have exactly 13 of each suit
         for suit in Suit::all() {
-            let count = deck.cards.iter()
-                .filter(|card| card.suit == suit)
-                .count();
+            let count = deck.cards.iter().filter(|card| card.suit == suit).count();
             assert_eq!(count, 13, "Should have 13 cards of suit {:?}", suit);
         }
     }
@@ -288,7 +284,7 @@ mod tests {
     fn test_deck_draw() {
         let mut deck = Deck::new();
         let initial_count = deck.cards.len();
-        
+
         let card = deck.draw();
         assert!(card.is_some());
         assert_eq!(deck.cards.len(), initial_count - 1);
@@ -296,7 +292,7 @@ mod tests {
         // Draw all cards
         while deck.draw().is_some() {}
         assert_eq!(deck.cards.len(), 0);
-        
+
         // Drawing from empty deck should return None
         assert!(deck.draw().is_none());
     }
@@ -304,7 +300,7 @@ mod tests {
     #[test]
     fn test_deck_reset() {
         let mut deck = Deck::new();
-        
+
         // Draw some cards
         deck.draw();
         deck.draw();
@@ -320,13 +316,13 @@ mod tests {
     fn test_deck_shuffle() {
         let mut deck1 = Deck::new();
         let mut deck2 = Deck::new();
-        
+
         // Store original order
         let original_order = deck1.cards.clone();
-        
+
         // Shuffle one deck
         deck1.shuffle();
-        
+
         // It's extremely unlikely (but theoretically possible) that shuffle produces
         // the same order, so we'll test this multiple times
         let mut shuffled_at_least_once = false;
@@ -337,7 +333,10 @@ mod tests {
                 break;
             }
         }
-        assert!(shuffled_at_least_once, "Deck should be shuffled after multiple attempts");
+        assert!(
+            shuffled_at_least_once,
+            "Deck should be shuffled after multiple attempts"
+        );
     }
 
     mod test_fixtures {
@@ -381,11 +380,11 @@ mod tests {
     fn test_fixture_blackjack_hand() {
         let hand = test_fixtures::create_blackjack_hand();
         assert_eq!(hand.len(), 2);
-        
+
         // Calculate hand value (Ace + King = 21)
         let mut total = 0;
         let mut aces = 0;
-        
+
         for card in &hand {
             if card.value == Value::Ace {
                 aces += 1;
@@ -394,13 +393,13 @@ mod tests {
                 total += card.value.value() as i32;
             }
         }
-        
+
         // Adjust for Aces if total > 21
         while total > 21 && aces > 0 {
             total -= 10; // Convert Ace from 11 to 1
             aces -= 1;
         }
-        
+
         assert_eq!(total, 21);
     }
 

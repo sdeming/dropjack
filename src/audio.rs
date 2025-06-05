@@ -96,22 +96,64 @@ impl AudioSystem {
     /// audio files to your assets/audio/ directory.
     fn get_audio_config() -> HashMap<AudioEvent, String> {
         HashMap::from([
-            (AudioEvent::DifficultyChange, "assets/audio/difficulty_change.ogg".to_string()),
-            (AudioEvent::StartGame, "assets/audio/start_game.ogg".to_string()),
+            (
+                AudioEvent::DifficultyChange,
+                "assets/audio/difficulty_change.ogg".to_string(),
+            ),
+            (
+                AudioEvent::StartGame,
+                "assets/audio/start_game.ogg".to_string(),
+            ),
             (AudioEvent::PauseGame, "assets/audio/pause.ogg".to_string()),
-            (AudioEvent::ResumeGame, "assets/audio/resume.ogg".to_string()),
-            (AudioEvent::OpenQuitConfirmation, "assets/audio/open_quit.ogg".to_string()),
-            (AudioEvent::ReturnToGame, "assets/audio/return_to_game.ogg".to_string()),
+            (
+                AudioEvent::ResumeGame,
+                "assets/audio/resume.ogg".to_string(),
+            ),
+            (
+                AudioEvent::OpenQuitConfirmation,
+                "assets/audio/open_quit.ogg".to_string(),
+            ),
+            (
+                AudioEvent::ReturnToGame,
+                "assets/audio/return_to_game.ogg".to_string(),
+            ),
             (AudioEvent::QuitGame, "assets/audio/quit.ogg".to_string()),
-            (AudioEvent::DropCard, "assets/audio/drop_card.ogg".to_string()),
-            (AudioEvent::MakeMatch, "assets/audio/make_match.ogg".to_string()),
-            (AudioEvent::ExplodeCard, "assets/audio/explode_card.ogg".to_string()),
-            (AudioEvent::ForfeitGame, "assets/audio/forfeit.ogg".to_string()),
-            (AudioEvent::GameOver, "assets/audio/game_over.ogg".to_string()),
-            (AudioEvent::MoveLeft, "assets/audio/move_left.ogg".to_string()),
-            (AudioEvent::MoveRight, "assets/audio/move_right.ogg".to_string()),
-            (AudioEvent::SoftDrop, "assets/audio/soft_drop.ogg".to_string()),
-            (AudioEvent::HardDrop, "assets/audio/hard_drop.ogg".to_string()),
+            (
+                AudioEvent::DropCard,
+                "assets/audio/drop_card.ogg".to_string(),
+            ),
+            (
+                AudioEvent::MakeMatch,
+                "assets/audio/make_match.ogg".to_string(),
+            ),
+            (
+                AudioEvent::ExplodeCard,
+                "assets/audio/explode_card.ogg".to_string(),
+            ),
+            (
+                AudioEvent::ForfeitGame,
+                "assets/audio/forfeit.ogg".to_string(),
+            ),
+            (
+                AudioEvent::GameOver,
+                "assets/audio/game_over.ogg".to_string(),
+            ),
+            (
+                AudioEvent::MoveLeft,
+                "assets/audio/move_left.ogg".to_string(),
+            ),
+            (
+                AudioEvent::MoveRight,
+                "assets/audio/move_right.ogg".to_string(),
+            ),
+            (
+                AudioEvent::SoftDrop,
+                "assets/audio/soft_drop.ogg".to_string(),
+            ),
+            (
+                AudioEvent::HardDrop,
+                "assets/audio/hard_drop.ogg".to_string(),
+            ),
         ])
     }
 
@@ -206,26 +248,41 @@ mod tests {
     fn test_audio_event_enum_completeness() {
         let events = test_fixtures::create_all_audio_events();
         let config = AudioSystem::get_audio_config();
-        
+
         // Verify all events have configuration
         for event in events {
-            assert!(config.contains_key(&event), "AudioEvent {:?} missing from config", event);
+            assert!(
+                config.contains_key(&event),
+                "AudioEvent {:?} missing from config",
+                event
+            );
         }
-        
+
         // Verify configuration is complete
-        assert!(config.len() >= 16, "Audio configuration should have at least 16 events");
+        assert!(
+            config.len() >= 16,
+            "Audio configuration should have at least 16 events"
+        );
     }
 
     #[test]
     fn test_audio_config_paths() {
         let config = AudioSystem::get_audio_config();
-        
+
         // Check that all paths are in expected format
         for (event, path) in config {
-            assert!(path.starts_with("assets/audio/"), 
-                "Audio path for {:?} should start with 'assets/audio/': {}", event, path);
-            assert!(path.ends_with(".ogg"), 
-                "Audio path for {:?} should end with '.ogg': {}", event, path);
+            assert!(
+                path.starts_with("assets/audio/"),
+                "Audio path for {:?} should start with 'assets/audio/': {}",
+                event,
+                path
+            );
+            assert!(
+                path.ends_with(".ogg"),
+                "Audio path for {:?} should end with '.ogg': {}",
+                event,
+                path
+            );
         }
     }
 
@@ -233,9 +290,13 @@ mod tests {
     fn test_audio_config_unique_files() {
         let config = AudioSystem::get_audio_config();
         let mut paths = Vec::new();
-        
+
         for (_, path) in config {
-            assert!(!paths.contains(&path), "Duplicate audio file path: {}", path);
+            assert!(
+                !paths.contains(&path),
+                "Duplicate audio file path: {}",
+                path
+            );
             paths.push(path);
         }
     }
@@ -250,7 +311,7 @@ mod tests {
     fn test_load_sound_file_invalid_path() {
         let result = AudioSystem::load_sound_file("");
         assert!(result.is_none());
-        
+
         let result = AudioSystem::load_sound_file("/invalid/path/file.ogg");
         assert!(result.is_none());
     }
@@ -260,7 +321,7 @@ mod tests {
         // Test that audio system can be created without panicking
         // This will likely fail to load actual audio files but should not crash
         let audio_system = AudioSystem::new();
-        
+
         // Should have the correct number of configured events
         let (loaded, total) = audio_system.get_audio_stats();
         assert_eq!(total, 16); // Should match the number of events in config
@@ -271,10 +332,13 @@ mod tests {
     fn test_audio_stats() {
         let audio_system = AudioSystem::new();
         let (loaded, total) = audio_system.get_audio_stats();
-        
+
         assert!(total > 0, "Should have audio events configured");
-        assert!(loaded <= total, "Loaded sounds should not exceed total events");
-        
+        assert!(
+            loaded <= total,
+            "Loaded sounds should not exceed total events"
+        );
+
         // Verify stats match actual data
         assert_eq!(loaded, audio_system.sound_data.len());
         assert_eq!(total, AudioSystem::get_audio_config().len());
@@ -286,10 +350,10 @@ mod tests {
         let event1 = AudioEvent::StartGame;
         let event2 = AudioEvent::StartGame;
         let event3 = AudioEvent::DropCard;
-        
+
         assert_eq!(event1, event2);
         assert_ne!(event1, event3);
-        
+
         // Test in HashMap
         let mut map = HashMap::new();
         map.insert(event1, "test");
@@ -306,16 +370,16 @@ mod tests {
         assert!(debug_str.contains("MakeMatch"));
     }
 
-    #[test] 
+    #[test]
     fn test_play_event_with_mock_handle() {
         // This test verifies play_event doesn't panic with invalid audio
         let audio_system = AudioSystem::new();
-        
+
         // Create a mock raylib handle (this will be None in tests but shouldn't crash)
         // We can't easily test actual audio playback in unit tests, but we can test
         // that the method doesn't panic when called
         // Note: This would require a more complex mock setup in a real scenario
-        
+
         // For now, just verify the method exists and basic structure
         assert!(audio_system.sound_data.len() <= AudioSystem::get_audio_config().len());
     }
@@ -335,22 +399,24 @@ mod tests {
         fn test_audio_system_lifecycle() {
             // Test complete lifecycle
             let audio_system = AudioSystem::new();
-            
+
             // Get initial stats
             let (initial_loaded, total) = audio_system.get_audio_stats();
-            
+
             // Verify configuration consistency
             let config = AudioSystem::get_audio_config();
             assert_eq!(total, config.len());
-            
+
             // Test that fallback sound handling works
             let has_fallback = audio_system.fallback_sound.is_some();
             let has_specific_sounds = audio_system.sound_data.len() > 0;
-            
+
             // Should have either fallback or specific sounds (or both)
-            assert!(has_fallback || has_specific_sounds, 
-                "Audio system should have either fallback sound or specific sounds");
-            
+            assert!(
+                has_fallback || has_specific_sounds,
+                "Audio system should have either fallback sound or specific sounds"
+            );
+
             // Test stats consistency
             assert!(initial_loaded <= total);
         }
@@ -359,14 +425,25 @@ mod tests {
         fn test_all_audio_events_have_config() {
             let all_events = test_fixtures::create_all_audio_events();
             let config = AudioSystem::get_audio_config();
-            
+
             for event in all_events {
-                assert!(config.contains_key(&event), 
-                    "Event {:?} should have audio configuration", event);
-                
+                assert!(
+                    config.contains_key(&event),
+                    "Event {:?} should have audio configuration",
+                    event
+                );
+
                 let path = &config[&event];
-                assert!(!path.is_empty(), "Audio path should not be empty for {:?}", event);
-                assert!(path.contains("assets/"), "Audio path should contain 'assets/' for {:?}", event);
+                assert!(
+                    !path.is_empty(),
+                    "Audio path should not be empty for {:?}",
+                    event
+                );
+                assert!(
+                    path.contains("assets/"),
+                    "Audio path should contain 'assets/' for {:?}",
+                    event
+                );
             }
         }
     }

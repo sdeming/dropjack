@@ -61,7 +61,7 @@ mod tests {
     fn test_get_app_data_dir() {
         let result = get_app_data_dir();
         assert!(result.is_ok());
-        
+
         let app_data_dir = result.unwrap();
         assert!(app_data_dir.ends_with("DropJack"));
         assert!(app_data_dir.exists()); // Should be created by the function
@@ -73,7 +73,7 @@ mod tests {
         // Even if it already exists, it should still work
         let result = get_app_data_dir();
         assert!(result.is_ok());
-        
+
         let app_data_dir = result.unwrap();
         assert!(app_data_dir.is_dir());
     }
@@ -94,9 +94,7 @@ mod tests {
         let db_path = app_data_dir.join("test_highscores.db");
 
         // Test that we can create a game instance
-        let game_result = game::Game::builder()
-            .database_path(&db_path)
-            .build();
+        let game_result = game::Game::builder().database_path(&db_path).build();
 
         assert!(game_result.is_ok());
 

@@ -1,3 +1,4 @@
+use crate::ui::constants::*;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -15,15 +16,15 @@ struct ShadowConfig {
 impl ShadowConfig {
     fn new() -> Self {
         let offsets = vec![
-            Vector2::new(6.0, 6.0),
-            Vector2::new(3.0, 3.0),
-            Vector2::new(1.5, 1.5),
+            TEXT_SHADOW_OFFSET_1,
+            TEXT_SHADOW_OFFSET_2,
+            TEXT_SHADOW_OFFSET_3,
         ];
 
         let colors = vec![
-            Color::new(0, 0, 0, 150),
-            Color::new(0, 0, 0, 100),
-            Color::new(0, 0, 0, 50),
+            TEXT_SHADOW_COLOR_1,
+            TEXT_SHADOW_COLOR_2,
+            TEXT_SHADOW_COLOR_3,
         ];
 
         Self { offsets, colors }
@@ -47,15 +48,15 @@ struct TextCache {
 impl TextCache {
     fn new() -> Self {
         Self {
-            title_position: Vector2::new(600.0 - 160.0, 60.0),
-            title_size: 120.0,
-            subtitle_position: Vector2::new(600.0 - 140.0, 200.0),
-            subtitle_size: 32.0,
+            title_position: Vector2::new(600.0 - TEXT_TITLE_X_OFFSET, TEXT_TITLE_Y),
+            title_size: TEXT_TITLE_SIZE,
+            subtitle_position: Vector2::new(600.0 - TEXT_SUBTITLE_X_OFFSET, TEXT_SUBTITLE_Y),
+            subtitle_size: TEXT_SUBTITLE_SIZE,
             shadow_config: ShadowConfig::new(),
-            title_main_color: Color::new(255, 215, 0, 255), // Gold
-            title_highlight_color: Color::new(255, 255, 255, 200), // White highlight
-            subtitle_shadow_color: Color::new(0, 0, 0, 80),
-            subtitle_main_color: Color::new(200, 200, 255, 255),
+            title_main_color: TEXT_TITLE_MAIN_COLOR,
+            title_highlight_color: TEXT_TITLE_HIGHLIGHT_COLOR,
+            subtitle_shadow_color: TEXT_SUBTITLE_SHADOW_COLOR,
+            subtitle_main_color: TEXT_SUBTITLE_MAIN_COLOR,
         }
     }
 }
@@ -94,7 +95,7 @@ impl TextRenderer {
             title,
             cache.title_position,
             cache.title_size,
-            2.0,
+            TEXT_TITLE_SPACING,
             cache.title_main_color,
         );
 
@@ -103,7 +104,7 @@ impl TextRenderer {
             title,
             Vector2::new(cache.title_position.x, cache.title_position.y - 1.0),
             cache.title_size,
-            2.0,
+            TEXT_TITLE_SPACING,
             cache.title_highlight_color,
         );
     }
@@ -117,11 +118,11 @@ impl TextRenderer {
             font,
             subtitle,
             Vector2::new(
-                cache.subtitle_position.x + 2.0,
-                cache.subtitle_position.y + 2.0,
+                cache.subtitle_position.x + TEXT_SHADOW_OFFSET_SUBTITLE.x,
+                cache.subtitle_position.y + TEXT_SHADOW_OFFSET_SUBTITLE.y,
             ),
             cache.subtitle_size,
-            1.0,
+            TEXT_SUBTITLE_SPACING,
             cache.subtitle_shadow_color,
         );
 
@@ -131,7 +132,7 @@ impl TextRenderer {
             subtitle,
             cache.subtitle_position,
             cache.subtitle_size,
-            1.0,
+            TEXT_SUBTITLE_SPACING,
             cache.subtitle_main_color,
         );
     }

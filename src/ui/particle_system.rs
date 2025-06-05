@@ -1,4 +1,5 @@
 use crate::models::{Card, CardColor, Particle};
+use crate::ui::constants::*;
 use raylib::prelude::*;
 
 pub struct ParticleSystem {
@@ -22,11 +23,21 @@ pub struct ParticleSystemBuilder {
 impl ParticleSystemBuilder {
     pub fn new() -> Self {
         Self {
-            particle_capacity: 100,
-            explosion_particle_count: 35,
-            sparkle_count: 8,
-            explosion_base_speeds: vec![80.0, 60.0, 40.0, 100.0],
-            explosion_colors: [Color::WHITE, Color::YELLOW, Color::ORANGE, Color::LIGHTGRAY],
+            particle_capacity: PARTICLE_SYSTEM_CAPACITY,
+            explosion_particle_count: PARTICLE_EXPLOSION_COUNT,
+            sparkle_count: PARTICLE_SPARKLE_COUNT,
+            explosion_base_speeds: vec![
+                PARTICLE_EXPLOSION_SPEED_1,
+                PARTICLE_EXPLOSION_SPEED_2,
+                PARTICLE_EXPLOSION_SPEED_3,
+                PARTICLE_EXPLOSION_SPEED_4,
+            ],
+            explosion_colors: [
+                PARTICLE_COLOR_WHITE,
+                PARTICLE_COLOR_YELLOW,
+                PARTICLE_COLOR_ORANGE,
+                PARTICLE_COLOR_LIGHTGRAY,
+            ],
         }
     }
 
@@ -47,13 +58,16 @@ impl ParticleSystemBuilder {
         // Pre-compute explosion velocity patterns for reuse
         let explosion_velocities: Vec<Vector2> = (0..self.explosion_particle_count)
             .map(|i| {
-                let wave = i / 12;
-                let base_speed = self.explosion_base_speeds
+                let wave = i / PARTICLE_WAVE_SIZE;
+                let base_speed = self
+                    .explosion_base_speeds
                     .get(wave)
                     .copied()
-                    .unwrap_or(100.0);
+                    .unwrap_or(PARTICLE_EXPLOSION_SPEED_4);
 
-                let angle = (i as f32 / (self.explosion_particle_count / 4) as f32) * 2.0 * std::f32::consts::PI;
+                let angle = (i as f32 / (self.explosion_particle_count / 4) as f32)
+                    * 2.0
+                    * std::f32::consts::PI;
                 let speed_variation = 0.5 + (i as f32 / self.explosion_particle_count as f32);
                 let final_speed = base_speed * speed_variation;
 
@@ -66,8 +80,8 @@ impl ParticleSystemBuilder {
             .map(|i| {
                 let angle = (i as f32 / self.sparkle_count as f32) * 2.0 * std::f32::consts::PI;
                 Vector2::new(
-                    angle.cos() * 20.0,
-                    angle.sin() * 20.0 - 30.0, // Upward bias
+                    angle.cos() * PARTICLE_SPARKLE_SPEED,
+                    angle.sin() * PARTICLE_SPARKLE_SPEED + PARTICLE_SPARKLE_UPWARD_BIAS,
                 )
             })
             .collect();
@@ -97,26 +111,26 @@ impl ParticleSystem {
         // Create explosion effect based on card colors
         let primary_color = match card.suit.color() {
             CardColor::Red => Color::RED,
-            CardColor::Black => Color::new(30, 30, 30, 255),
+            CardColor::Black => PARTICLE_COLOR_BLACK,
         };
 
         // Generate particles using pre-computed patterns
         let total_particles = self.explosion_velocities.len();
 
         for i in 0..total_particles {
-            let wave = i / 12;
+            let wave = i / PARTICLE_WAVE_SIZE;
             let (life_time, particle_size) = match wave {
-                0 => (1.0, 3.0),
-                1 => (1.2, 2.5),
-                2 => (1.5, 2.0),
-                _ => (0.8, 4.0),
+                0 => (PARTICLE_LIFE_TIME_1, PARTICLE_SIZE_1),
+                1 => (PARTICLE_LIFE_TIME_2, PARTICLE_SIZE_2),
+                2 => (PARTICLE_LIFE_TIME_3, PARTICLE_SIZE_3),
+                _ => (PARTICLE_LIFE_TIME_4, PARTICLE_SIZE_4),
             };
 
             // Use pre-computed velocity with small variations
             let base_velocity = self.explosion_velocities[i];
             let velocity_variation = Vector2::new(
-                (i % 7) as f32 * 8.6 - 30.0, // Deterministic variation
-                (i % 5) as f32 * 12.0 - 30.0,
+                (i % 7) as f32 * 8.6 - PARTICLE_VELOCITY_VARIATION_RANGE,
+                (i % 5) as f32 * 12.0 - PARTICLE_VELOCITY_VARIATION_RANGE,
             );
             let velocity = Vector2::new(
                 base_velocity.x + velocity_variation.x,
@@ -130,7 +144,7 @@ impl ParticleSystem {
                 self.explosion_colors[i % self.explosion_colors.len()]
             };
 
-            let final_life_time = life_time + (i % 10) as f32 * 0.05; // Deterministic variation
+            let final_life_time = life_time + (i % 10) as f32 * PARTICLE_LIFE_TIME_VARIATION;
 
             let particle_pos = Vector2::new(
                 position.x + ((i % 7) as f32 - 3.0) * size * 0.1, // Deterministic spread
@@ -142,14 +156,14 @@ impl ParticleSystem {
                 // Even when reusing, use builder for clean, consistent configuration
                 Particle::builder(particle_pos, velocity, color, final_life_time)
                     .size(particle_size)
-                    .acceleration(Vector2::new(0.0, 200.0))
-                    .angular_velocity(((i % 7) as f32 - 3.0) * 3.0)
+                    .acceleration(Vector2::new(0.0, PARTICLE_ACCELERATION_Y))
+                    .angular_velocity(((i % 7) as f32 - 3.0) * PARTICLE_ANGULAR_VELOCITY_RANGE)
                     .build()
             } else {
                 // Create new particle using builder
                 Particle::builder(particle_pos, velocity, color, final_life_time)
                     .size(particle_size)
-                    .angular_velocity(((i % 7) as f32 - 3.0) * 3.0)
+                    .angular_velocity(((i % 7) as f32 - 3.0) * PARTICLE_ANGULAR_VELOCITY_RANGE)
                     .build()
             };
 
@@ -167,17 +181,33 @@ impl ParticleSystem {
             // Create sparkle using builder pattern for consistency
             let sparkle = if let Some(_reused_particle) = self.particle_pool.pop() {
                 // Even when reusing, use builder for clean, consistent configuration
-                Particle::builder(sparkle_pos, sparkle_velocity, Color::YELLOW, 0.6)
-                    .size(1.5)
-                    .acceleration(Vector2::new(0.0, 150.0))
-                    .angular_velocity(i as f32 * 2.0 - 8.0)
-                    .build()
+                Particle::builder(
+                    sparkle_pos,
+                    sparkle_velocity,
+                    PARTICLE_COLOR_YELLOW,
+                    PARTICLE_SPARKLE_LIFE,
+                )
+                .size(PARTICLE_SPARKLE_SIZE)
+                .acceleration(Vector2::new(0.0, PARTICLE_SPARKLE_ACCELERATION_Y))
+                .angular_velocity(
+                    i as f32 * PARTICLE_SPARKLE_ANGULAR_VELOCITY_MULTIPLIER
+                        - PARTICLE_SPARKLE_ANGULAR_VELOCITY_OFFSET,
+                )
+                .build()
             } else {
-                Particle::builder(sparkle_pos, sparkle_velocity, Color::YELLOW, 0.6)
-                    .size(1.5)
-                    .acceleration(Vector2::new(0.0, 150.0))
-                    .angular_velocity(i as f32 * 2.0 - 8.0)
-                    .build()
+                Particle::builder(
+                    sparkle_pos,
+                    sparkle_velocity,
+                    PARTICLE_COLOR_YELLOW,
+                    PARTICLE_SPARKLE_LIFE,
+                )
+                .size(PARTICLE_SPARKLE_SIZE)
+                .acceleration(Vector2::new(0.0, PARTICLE_SPARKLE_ACCELERATION_Y))
+                .angular_velocity(
+                    i as f32 * PARTICLE_SPARKLE_ANGULAR_VELOCITY_MULTIPLIER
+                        - PARTICLE_SPARKLE_ANGULAR_VELOCITY_OFFSET,
+                )
+                .build()
             };
 
             self.particles.push(sparkle);

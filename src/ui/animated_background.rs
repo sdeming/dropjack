@@ -1,4 +1,5 @@
 use crate::models::{Card, Deck, Suit, Value};
+use crate::ui::constants::*;
 use crate::ui::drawing::AtlasCardRenderer;
 use crate::ui::drawing::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use raylib::prelude::*;
@@ -17,28 +18,27 @@ pub struct AnimatedCard {
 impl AnimatedCard {
     pub fn new(card: Card) -> Self {
         // Create random card with 10% larger size
-        let size = 40.0;
+        let size = ANIMATION_CARD_SIZE;
 
         // Random position across the screen
         let x = rand::random::<f32>() * SCREEN_WIDTH as f32;
         let y = rand::random::<f32>() * SCREEN_HEIGHT as f32;
 
         // Random velocity - not too fast as specified
-        let max_speed = 30.0; // Gentle speed
-        let velocity_x = (rand::random::<f32>() - 0.5) * max_speed;
-        let velocity_y = (rand::random::<f32>() - 0.5) * max_speed;
+        let velocity_x = (rand::random::<f32>() - 0.5) * ANIMATION_MAX_SPEED;
+        let velocity_y = (rand::random::<f32>() - 0.5) * ANIMATION_MAX_SPEED;
 
         // Random rotation and angular velocity - slight rotation
-        let angular_velocity = (rand::random::<f32>() - 0.5) * 60.0; // Degrees per second
+        let angular_velocity = (rand::random::<f32>() - 0.5) * ANIMATION_ANGULAR_VELOCITY_RANGE;
 
         Self {
             position: Vector2::new(x, y),
             velocity: Vector2::new(velocity_x, velocity_y),
-            rotation: rand::random::<f32>() * 360.0,
+            rotation: rand::random::<f32>() * ANIMATION_ROTATION_MAX,
             angular_velocity,
             card,
             size,
-            alpha: 40, // Low alpha for subtle background effect
+            alpha: ANIMATION_ALPHA,
         }
     }
 
@@ -49,10 +49,10 @@ impl AnimatedCard {
 
         // Update rotation
         self.rotation += self.angular_velocity * delta_time;
-        if self.rotation > 360.0 {
-            self.rotation -= 360.0;
+        if self.rotation > ANIMATION_ROTATION_MAX {
+            self.rotation -= ANIMATION_ROTATION_MAX;
         } else if self.rotation < 0.0 {
-            self.rotation += 360.0;
+            self.rotation += ANIMATION_ROTATION_MAX;
         }
 
         // Bounce off walls
@@ -103,8 +103,8 @@ impl AnimatedBackground {
         deck.shuffle();
 
         // Create evenly distributed cards across the screen
-        let cols = 3;
-        let rows = 4;
+        let cols = ANIMATION_GRID_COLS;
+        let rows = ANIMATION_GRID_ROWS;
         let total_cards = cols * rows;
 
         let cards = (0..total_cards)
@@ -127,9 +127,8 @@ impl AnimatedBackground {
                 let grid_y = (row as f32 + 0.5) * (SCREEN_HEIGHT as f32 / rows as f32);
 
                 // Add some randomness to avoid perfect grid
-                let randomness = 50.0;
-                let x = grid_x + (rand::random::<f32>() - 0.5) * randomness;
-                let y = grid_y + (rand::random::<f32>() - 0.5) * randomness;
+                let x = grid_x + (rand::random::<f32>() - 0.5) * ANIMATION_RANDOMNESS;
+                let y = grid_y + (rand::random::<f32>() - 0.5) * ANIMATION_RANDOMNESS;
 
                 let mut animated_card = AnimatedCard::new(card);
                 animated_card.position = Vector2::new(

@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn test_high_score_with_id() {
         let high_score = test_fixtures::create_high_score_with_id(42);
-        
+
         assert_eq!(high_score.id, Some(42));
         assert_eq!(high_score.player_initials, "XYZ");
         assert_eq!(high_score.score, 2000);
@@ -94,7 +94,7 @@ mod tests {
     #[test]
     fn test_high_score_fixture() {
         let high_score = test_fixtures::create_test_high_score();
-        
+
         assert!(high_score.id.is_none());
         assert_eq!(high_score.player_initials, "ABC");
         assert_eq!(high_score.score, 1500);
@@ -106,14 +106,14 @@ mod tests {
     #[test]
     fn test_multiple_high_scores_fixture() {
         let high_scores = test_fixtures::create_multiple_high_scores();
-        
+
         assert_eq!(high_scores.len(), 3);
-        
+
         // Check first score
         assert_eq!(high_scores[0].id, Some(1));
         assert_eq!(high_scores[0].player_initials, "AAA");
         assert_eq!(high_scores[0].score, 1000);
-        
+
         // Check scores are different
         assert_ne!(high_scores[0].score, high_scores[1].score);
         assert_ne!(high_scores[1].score, high_scores[2].score);
@@ -122,12 +122,12 @@ mod tests {
     #[test]
     fn test_high_score_string_fields() {
         let mut high_score = test_fixtures::create_test_high_score();
-        
+
         // Test that string fields can be modified
         high_score.player_initials = "NEW".to_string();
         high_score.difficulty = "Hard".to_string();
         high_score.date = "2024-12-31 23:59:59".to_string();
-        
+
         assert_eq!(high_score.player_initials, "NEW");
         assert_eq!(high_score.difficulty, "Hard");
         assert_eq!(high_score.date, "2024-12-31 23:59:59");
@@ -136,14 +136,14 @@ mod tests {
     #[test]
     fn test_high_score_numeric_fields() {
         let mut high_score = test_fixtures::create_test_high_score();
-        
+
         // Test score modifications
         high_score.score = 0;
         assert_eq!(high_score.score, 0);
-        
+
         high_score.score = -100; // Negative scores (for testing edge cases)
         assert_eq!(high_score.score, -100);
-        
+
         high_score.score = 999999; // Very high score
         assert_eq!(high_score.score, 999999);
     }
@@ -151,14 +151,14 @@ mod tests {
     #[test]
     fn test_high_score_id_transitions() {
         let mut high_score = test_fixtures::create_test_high_score();
-        
+
         // Start with no ID
         assert!(high_score.id.is_none());
-        
+
         // Assign an ID (like after database insertion)
         high_score.id = Some(123);
         assert_eq!(high_score.id, Some(123));
-        
+
         // Remove ID (unusual but possible)
         high_score.id = None;
         assert!(high_score.id.is_none());

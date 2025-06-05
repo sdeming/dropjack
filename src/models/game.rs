@@ -182,7 +182,10 @@ mod tests {
 
     #[test]
     fn test_visual_position() {
-        let vis_pos = VisualPosition { x: 100.5, y: 200.75 };
+        let vis_pos = VisualPosition {
+            x: 100.5,
+            y: 200.75,
+        };
         assert_eq!(vis_pos.x, 100.5);
         assert_eq!(vis_pos.y, 200.75);
     }
@@ -204,9 +207,9 @@ mod tests {
     fn test_playing_card_builder_basic() {
         let card = test_fixtures::create_test_card();
         let position = test_fixtures::create_test_position();
-        
+
         let playing_card = PlayingCard::builder(card, position).build();
-        
+
         assert_eq!(playing_card.card, card);
         assert_eq!(playing_card.position.x, position.x);
         assert_eq!(playing_card.position.y, position.y);
@@ -221,11 +224,11 @@ mod tests {
         let card = test_fixtures::create_test_card();
         let position = Position { x: 2, y: 3 };
         let cell_size = 60;
-        
+
         let playing_card = PlayingCard::builder(card, position)
             .cell_size(cell_size)
             .build();
-        
+
         // Visual position should be calculated based on cell size
         assert_eq!(playing_card.visual_position.x, (2 * cell_size) as f32);
         assert_eq!(playing_card.visual_position.y, (3 * cell_size) as f32);
@@ -236,11 +239,11 @@ mod tests {
         let card = test_fixtures::create_test_card();
         let position = test_fixtures::create_test_position();
         let visual_pos = test_fixtures::create_test_visual_position();
-        
+
         let playing_card = PlayingCard::builder(card, position)
             .visual_position(visual_pos)
             .build();
-        
+
         assert_eq!(playing_card.visual_position.x, visual_pos.x);
         assert_eq!(playing_card.visual_position.y, visual_pos.y);
     }
@@ -250,11 +253,9 @@ mod tests {
         let card = test_fixtures::create_test_card();
         let position = Position { x: 1, y: 2 };
         let target = Position { x: 3, y: 4 };
-        
-        let playing_card = PlayingCard::builder(card, position)
-            .target(target)
-            .build();
-        
+
+        let playing_card = PlayingCard::builder(card, position).target(target).build();
+
         assert_eq!(playing_card.position.x, 1);
         assert_eq!(playing_card.position.y, 2);
         assert_eq!(playing_card.target.x, 3);
@@ -265,12 +266,12 @@ mod tests {
     fn test_playing_card_builder_with_falling_state() {
         let card = test_fixtures::create_test_card();
         let position = test_fixtures::create_test_position();
-        
+
         let playing_card = PlayingCard::builder(card, position)
             .falling(true)
             .hard_dropping(true)
             .build();
-        
+
         assert!(playing_card.is_falling);
         assert!(playing_card.is_hard_dropping);
     }
@@ -281,7 +282,7 @@ mod tests {
         let position = Position { x: 0, y: 1 };
         let target = Position { x: 2, y: 3 };
         let visual_pos = VisualPosition { x: 50.0, y: 75.0 };
-        
+
         let playing_card = PlayingCard::builder(card, position)
             .cell_size(25)
             .visual_position(visual_pos)
@@ -289,7 +290,7 @@ mod tests {
             .falling(true)
             .hard_dropping(false)
             .build();
-        
+
         assert_eq!(playing_card.card, card);
         assert_eq!(playing_card.position.x, 0);
         assert_eq!(playing_card.position.y, 1);
@@ -309,7 +310,7 @@ mod tests {
             chain_multiplier: 2,
             combination_index: 1,
         };
-        
+
         assert!(destruction.destruction_time > now);
         assert_eq!(destruction.chain_multiplier, 2);
         assert_eq!(destruction.combination_index, 1);
@@ -325,7 +326,7 @@ mod tests {
             visual_y: 120.0,
             is_animating: true,
         };
-        
+
         assert_eq!(falling_card.card, card);
         assert_eq!(falling_card.to_y, 5);
         assert_eq!(falling_card.x, 3);
@@ -336,7 +337,7 @@ mod tests {
     #[test]
     fn test_falling_card_creation_from_fixture() {
         let falling_card = test_fixtures::create_falling_card();
-        
+
         assert_eq!(falling_card.to_y, 7);
         assert_eq!(falling_card.x, 2);
         assert_eq!(falling_card.visual_y, 100.0);
@@ -350,11 +351,9 @@ mod tests {
         fn test_builder_with_zero_cell_size() {
             let card = test_fixtures::create_test_card();
             let position = Position { x: 5, y: 3 };
-            
-            let playing_card = PlayingCard::builder(card, position)
-                .cell_size(0)
-                .build();
-            
+
+            let playing_card = PlayingCard::builder(card, position).cell_size(0).build();
+
             assert_eq!(playing_card.visual_position.x, 0.0);
             assert_eq!(playing_card.visual_position.y, 0.0);
         }
@@ -363,11 +362,9 @@ mod tests {
         fn test_builder_with_negative_position() {
             let card = test_fixtures::create_test_card();
             let position = Position { x: -1, y: -2 };
-            
-            let playing_card = PlayingCard::builder(card, position)
-                .cell_size(50)
-                .build();
-            
+
+            let playing_card = PlayingCard::builder(card, position).cell_size(50).build();
+
             assert_eq!(playing_card.position.x, -1);
             assert_eq!(playing_card.position.y, -2);
             assert_eq!(playing_card.visual_position.x, -50.0);
@@ -378,13 +375,13 @@ mod tests {
         fn test_builder_overriding_defaults() {
             let card = test_fixtures::create_test_card();
             let position = Position { x: 1, y: 1 };
-            
+
             // First set falling to true, then override to false
             let playing_card = PlayingCard::builder(card, position)
                 .falling(true)
                 .falling(false)
                 .build();
-            
+
             assert!(!playing_card.is_falling);
         }
     }
@@ -397,14 +394,14 @@ mod tests {
             let card = Card::new(Suit::Spades, Value::King);
             let initial_pos = Position { x: 2, y: 1 };
             let target_pos = Position { x: 2, y: 7 };
-            
+
             // Create a playing card that starts falling
             let mut playing_card = PlayingCard::builder(card, initial_pos)
                 .target(target_pos)
                 .falling(true)
                 .cell_size(48)
                 .build();
-            
+
             // Verify initial state
             assert_eq!(playing_card.card.suit, Suit::Spades);
             assert_eq!(playing_card.card.value, Value::King);
@@ -413,16 +410,16 @@ mod tests {
             assert_eq!(playing_card.target.x, 2);
             assert_eq!(playing_card.target.y, 7);
             assert!(playing_card.is_falling);
-            
+
             // Simulate animation progress
             playing_card.visual_position.y += 10.0; // Move down
             assert!(playing_card.visual_position.y > (initial_pos.y * 48) as f32);
-            
+
             // Simulate reaching target
             playing_card.position = playing_card.target;
             playing_card.is_falling = false;
             playing_card.visual_position.y = (target_pos.y * 48) as f32;
-            
+
             assert_eq!(playing_card.position.y, 7);
             assert!(!playing_card.is_falling);
         }

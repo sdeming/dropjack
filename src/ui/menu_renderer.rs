@@ -1,4 +1,5 @@
 use crate::game::Game;
+use crate::ui::constants::*;
 use raylib::color::Color;
 use raylib::drawing::{RaylibDraw, RaylibDrawHandle};
 use raylib::math::Vector2;
@@ -28,11 +29,11 @@ struct PanelLayout {
 
 impl PanelLayout {
     fn new() -> Self {
-        let panel_x = 290;
-        let panel_y = 260;
-        let panel_width = 700;
-        let panel_height = 380;
-        let corner_size = 15;
+        let panel_x = MENU_PANEL_X;
+        let panel_y = MENU_PANEL_Y;
+        let panel_width = MENU_PANEL_WIDTH;
+        let panel_height = MENU_PANEL_HEIGHT;
+        let corner_size = MENU_CORNER_SIZE;
 
         let corner_positions = [
             (panel_x, panel_y),                              // Top-left
@@ -51,12 +52,12 @@ impl PanelLayout {
             panel_height,
             corner_size,
             corner_positions,
-            shadow_offset: (4, 4),
-            panel_bg_color: Color::new(20, 30, 50, 200),
-            panel_border_color: Color::new(100, 150, 255, 255),
-            panel_border_glow_color: Color::new(100, 150, 255, 100),
-            corner_color: Color::new(255, 215, 0, 255),
-            shadow_color: Color::new(0, 0, 0, 50),
+            shadow_offset: (MENU_SHADOW_OFFSET_X, MENU_SHADOW_OFFSET_Y),
+            panel_bg_color: MENU_PANEL_BG_COLOR,
+            panel_border_color: MENU_PANEL_BORDER_COLOR,
+            panel_border_glow_color: MENU_PANEL_BORDER_GLOW_COLOR,
+            corner_color: MENU_CORNER_COLOR,
+            shadow_color: MENU_SHADOW_COLOR,
         }
     }
 }
@@ -86,12 +87,12 @@ struct DifficultyLayout {
 
 impl DifficultyLayout {
     fn new() -> Self {
-        let base_x = 340;
-        let base_y = 300;
-        let button_y = base_y + 60;
-        let button_width = 120;
-        let button_height = 50;
-        let hard_button_x = base_x + 140;
+        let base_x = DIFFICULTY_BASE_X;
+        let base_y = DIFFICULTY_BASE_Y;
+        let button_y = base_y + DIFFICULTY_BUTTON_Y_OFFSET;
+        let button_width = DIFFICULTY_BUTTON_WIDTH;
+        let button_height = DIFFICULTY_BUTTON_HEIGHT;
+        let hard_button_x = base_x + DIFFICULTY_HARD_BUTTON_X_OFFSET;
 
         Self {
             base_x,
@@ -100,17 +101,26 @@ impl DifficultyLayout {
             button_width,
             button_height,
             hard_button_x,
-            easy_text_pos: Vector2::new((base_x + 35) as f32, (button_y + 12) as f32),
-            hard_text_pos: Vector2::new((hard_button_x + 35) as f32, (button_y + 12) as f32),
-            instruction_pos: Vector2::new((base_x + 280) as f32, (button_y + 14) as f32),
-            easy_selected_bg: Color::new(0, 150, 0, 255),
-            easy_unselected_bg: Color::new(40, 60, 40, 255),
-            hard_selected_bg: Color::new(150, 0, 0, 255),
-            hard_unselected_bg: Color::new(60, 40, 40, 255),
-            selected_text_color: Color::WHITE,
-            unselected_text_color: Color::new(180, 180, 180, 255),
-            controller_instruction_color: Color::new(150, 200, 255, 255),
-            keyboard_instruction_color: Color::new(200, 200, 200, 255),
+            easy_text_pos: Vector2::new(
+                (base_x + DIFFICULTY_EASY_TEXT_X_OFFSET) as f32,
+                (button_y + DIFFICULTY_EASY_TEXT_Y_OFFSET) as f32,
+            ),
+            hard_text_pos: Vector2::new(
+                (hard_button_x + DIFFICULTY_HARD_TEXT_X_OFFSET) as f32,
+                (button_y + DIFFICULTY_HARD_TEXT_Y_OFFSET) as f32,
+            ),
+            instruction_pos: Vector2::new(
+                (base_x + DIFFICULTY_INSTRUCTION_X_OFFSET) as f32,
+                (button_y + DIFFICULTY_INSTRUCTION_Y_OFFSET) as f32,
+            ),
+            easy_selected_bg: DIFFICULTY_EASY_SELECTED_BG,
+            easy_unselected_bg: DIFFICULTY_EASY_UNSELECTED_BG,
+            hard_selected_bg: DIFFICULTY_HARD_SELECTED_BG,
+            hard_unselected_bg: DIFFICULTY_HARD_UNSELECTED_BG,
+            selected_text_color: DIFFICULTY_SELECTED_TEXT_COLOR,
+            unselected_text_color: DIFFICULTY_UNSELECTED_TEXT_COLOR,
+            controller_instruction_color: DIFFICULTY_CONTROLLER_INSTRUCTION_COLOR,
+            keyboard_instruction_color: DIFFICULTY_KEYBOARD_INSTRUCTION_COLOR,
         }
     }
 }
@@ -135,26 +145,26 @@ struct HighScoreLayout {
 
 impl HighScoreLayout {
     fn new() -> Self {
-        let base_x = 340;
-        let base_y = 450;
+        let base_x = HIGH_SCORE_BASE_X;
+        let base_y = HIGH_SCORE_BASE_Y;
 
         Self {
             base_x,
             base_y,
-            score_y_spacing: 35,
-            circle_center_x: base_x + 15,
-            circle_radius: 12.0,
+            score_y_spacing: HIGH_SCORE_Y_SPACING,
+            circle_center_x: base_x + HIGH_SCORE_CIRCLE_CENTER_X_OFFSET,
+            circle_radius: HIGH_SCORE_CIRCLE_RADIUS,
             medal_colors: [
-                Color::new(255, 215, 0, 255),   // Gold
-                Color::new(192, 192, 192, 255), // Silver
-                Color::new(205, 127, 50, 255),  // Bronze
+                HIGH_SCORE_GOLD_COLOR,
+                HIGH_SCORE_SILVER_COLOR,
+                HIGH_SCORE_BRONZE_COLOR,
             ],
-            title_color: Color::new(255, 215, 0, 255),
-            score_text_color: Color::new(240, 240, 240, 255),
-            no_scores_color: Color::new(200, 200, 200, 255),
-            easy_color: Color::new(0, 200, 0, 255),
-            hard_color: Color::new(255, 100, 100, 255),
-            circle_outline_color: Color::new(0, 0, 0, 150),
+            title_color: HIGH_SCORE_TITLE_COLOR,
+            score_text_color: HIGH_SCORE_TEXT_COLOR,
+            no_scores_color: HIGH_SCORE_NO_SCORES_COLOR,
+            easy_color: HIGH_SCORE_EASY_COLOR,
+            hard_color: HIGH_SCORE_HARD_COLOR,
+            circle_outline_color: HIGH_SCORE_CIRCLE_OUTLINE_COLOR,
         }
     }
 }
@@ -181,15 +191,15 @@ struct StartButtonLayout {
 
 impl StartButtonLayout {
     fn new() -> Self {
-        let button_x = 440;
-        let button_y = 700;
-        let button_width = 400;
-        let button_height = 80;
+        let button_x = START_BUTTON_X;
+        let button_y = START_BUTTON_Y;
+        let button_width = START_BUTTON_WIDTH;
+        let button_height = START_BUTTON_HEIGHT;
 
-        let glow_configs: Vec<(i32, u8)> = (0..6)
+        let glow_configs: Vec<(i32, u8)> = (0..START_BUTTON_GLOW_LAYERS)
             .map(|i| {
-                let glow_size = (i + 1) * 3;
-                let alpha = 25 - i * 4;
+                let glow_size = (i + 1) * START_BUTTON_GLOW_SIZE_MULTIPLIER;
+                let alpha = START_BUTTON_GLOW_ALPHA_BASE - i * START_BUTTON_GLOW_ALPHA_DECREMENT;
                 (glow_size, alpha as u8)
             })
             .collect();
@@ -200,14 +210,20 @@ impl StartButtonLayout {
             button_width,
             button_height,
             glow_configs,
-            controller_text_pos: Vector2::new((button_x + 85) as f32, (button_y + 25) as f32),
-            keyboard_text_pos: Vector2::new((button_x + 80) as f32, (button_y + 25) as f32),
-            main_button_color: Color::new(0, 180, 0, 255),
-            highlight_color: Color::new(0, 220, 0, 100),
-            border_color: Color::new(0, 255, 100, 255),
-            outer_border_color: Color::new(255, 255, 255, 150),
-            text_shadow_color: Color::new(0, 0, 0, 150),
-            text_color: Color::WHITE,
+            controller_text_pos: Vector2::new(
+                (button_x + START_BUTTON_CONTROLLER_TEXT_X_OFFSET) as f32,
+                (button_y + START_BUTTON_CONTROLLER_TEXT_Y_OFFSET) as f32,
+            ),
+            keyboard_text_pos: Vector2::new(
+                (button_x + START_BUTTON_KEYBOARD_TEXT_X_OFFSET) as f32,
+                (button_y + START_BUTTON_KEYBOARD_TEXT_Y_OFFSET) as f32,
+            ),
+            main_button_color: START_BUTTON_MAIN_COLOR,
+            highlight_color: START_BUTTON_HIGHLIGHT_COLOR,
+            border_color: START_BUTTON_BORDER_COLOR,
+            outer_border_color: START_BUTTON_OUTER_BORDER_COLOR,
+            text_shadow_color: START_BUTTON_TEXT_SHADOW_COLOR,
+            text_color: START_BUTTON_TEXT_COLOR,
         }
     }
 }
@@ -282,9 +298,9 @@ impl MenuRenderer {
             title_font,
             "Difficulty",
             Vector2::new(layout.base_x as f32, layout.base_y as f32),
-            40.0,
-            1.4,
-            Color::new(255, 215, 0, 255),
+            MENU_DIFFICULTY_TITLE_SIZE,
+            MENU_DIFFICULTY_TITLE_SPACING,
+            MENU_DIFFICULTY_TITLE_COLOR,
         );
 
         // Easy button
@@ -334,16 +350,16 @@ impl MenuRenderer {
             font,
             "Easy",
             layout.easy_text_pos,
-            24.0,
-            1.0,
+            MENU_DIFFICULTY_BUTTON_TEXT_SIZE,
+            MENU_DIFFICULTY_BUTTON_TEXT_SPACING,
             easy_text_color,
         );
         d.draw_text_ex(
             font,
             "Hard",
             layout.hard_text_pos,
-            24.0,
-            1.0,
+            MENU_DIFFICULTY_BUTTON_TEXT_SIZE,
+            MENU_DIFFICULTY_BUTTON_TEXT_SPACING,
             hard_text_color,
         );
 
@@ -364,8 +380,8 @@ impl MenuRenderer {
             font,
             instruction_text,
             layout.instruction_pos,
-            18.0,
-            1.0,
+            MENU_DIFFICULTY_INSTRUCTION_SIZE,
+            MENU_DIFFICULTY_INSTRUCTION_SPACING,
             instruction_color,
         );
     }
@@ -383,8 +399,8 @@ impl MenuRenderer {
             title_font,
             "High Scores",
             Vector2::new(layout.base_x as f32, layout.base_y as f32),
-            36.0,
-            1.2,
+            MENU_HIGH_SCORE_TITLE_SIZE,
+            MENU_HIGH_SCORE_TITLE_SPACING,
             layout.title_color,
         );
 
@@ -417,8 +433,8 @@ impl MenuRenderer {
                     (layout.circle_center_x - 6) as f32,
                     (circle_center_y - 8) as f32,
                 ),
-                18.0,
-                1.0,
+                MENU_HIGH_SCORE_TEXT_SIZE,
+                MENU_HIGH_SCORE_TEXT_SPACING,
                 Color::BLACK,
             );
 
@@ -434,8 +450,8 @@ impl MenuRenderer {
                 font,
                 &initials_and_score,
                 Vector2::new((layout.base_x + 45) as f32, (y_offset + 8) as f32),
-                20.0,
-                1.0,
+                MENU_HIGH_SCORE_SCORE_SIZE,
+                MENU_HIGH_SCORE_SCORE_SPACING,
                 layout.score_text_color,
             );
             d.draw_text_ex(
@@ -445,8 +461,8 @@ impl MenuRenderer {
                     (layout.base_x + 45 + initials_and_score.len() as i32 * 10) as f32,
                     (y_offset + 8) as f32,
                 ),
-                20.0,
-                1.0,
+                MENU_HIGH_SCORE_DIFFICULTY_SIZE,
+                MENU_HIGH_SCORE_DIFFICULTY_SPACING,
                 difficulty_color,
             );
         }
@@ -457,8 +473,8 @@ impl MenuRenderer {
                 font,
                 "No high scores yet - be the first!",
                 Vector2::new((layout.base_x + 45) as f32, (layout.base_y + 60) as f32),
-                20.0,
-                1.0,
+                MENU_HIGH_SCORE_NO_SCORES_SIZE,
+                MENU_HIGH_SCORE_NO_SCORES_SPACING,
                 layout.no_scores_color,
             );
         }
@@ -523,13 +539,23 @@ impl MenuRenderer {
         d.draw_text_ex(
             title_font,
             text,
-            Vector2::new(text_pos.x + 2.0, text_pos.y + 2.0),
-            28.0,
-            1.2,
+            Vector2::new(
+                text_pos.x + MENU_START_BUTTON_SHADOW_OFFSET,
+                text_pos.y + MENU_START_BUTTON_SHADOW_OFFSET,
+            ),
+            MENU_START_BUTTON_TEXT_SIZE,
+            MENU_START_BUTTON_TEXT_SPACING,
             layout.text_shadow_color,
         );
 
         // Main text
-        d.draw_text_ex(title_font, text, text_pos, 28.0, 1.2, layout.text_color);
+        d.draw_text_ex(
+            title_font,
+            text,
+            text_pos,
+            MENU_START_BUTTON_TEXT_SIZE,
+            MENU_START_BUTTON_TEXT_SPACING,
+            layout.text_color,
+        );
     }
 }
