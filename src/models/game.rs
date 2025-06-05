@@ -24,6 +24,7 @@ pub struct PlayingCard {
     pub visual_position: VisualPosition, // Visual position for smooth movement
     pub target: Position,                // Target position for animation
     pub is_falling: bool,                // Whether the card is currently falling
+    pub is_hard_dropping: bool,          // Whether the card is hard dropping (faster fall)
 }
 
 // Game difficulty modes

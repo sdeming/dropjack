@@ -111,6 +111,7 @@ impl AudioSystem {
             (AudioEvent::MoveLeft, "assets/audio/move_left.ogg".to_string()),
             (AudioEvent::MoveRight, "assets/audio/move_right.ogg".to_string()),
             (AudioEvent::SoftDrop, "assets/audio/soft_drop.ogg".to_string()),
+            (AudioEvent::HardDrop, "assets/audio/hard_drop.ogg".to_string()),
         ])
     }
 

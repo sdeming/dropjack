@@ -34,6 +34,7 @@ pub struct Game {
     pub delayed_destructions: Vec<DelayedDestruction>,
     pub last_dropped_x: Option<i32>,
     pub pending_audio_events: Vec<AudioEvent>,
+    pub hard_dropping_cards: Vec<PlayingCard>, // Cards that are hard dropping and still animating
 }
 
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
@@ -54,6 +55,7 @@ pub enum AudioEvent {
     MoveLeft,
     MoveRight,
     SoftDrop,
+    HardDrop,
 }
 
 impl Game {
@@ -87,6 +89,7 @@ impl Game {
             delayed_destructions: Vec::new(),
             last_dropped_x: None, // Initialize to None for the first card
             pending_audio_events: Vec::new(),
+            hard_dropping_cards: Vec::new(),
         }
     }
 
@@ -99,6 +102,7 @@ impl Game {
         self.last_speed_increase = Instant::now();
         self.player_initials = String::new();
         self.last_dropped_x = None;
+        self.hard_dropping_cards.clear();
 
         // Reset the board
         self.board = Board::new(self.board.width, self.board.height, 48);
@@ -126,6 +130,7 @@ impl Game {
                 },
                 target: Position { x, y: 0 },
                 is_falling: false,
+                is_hard_dropping: false,
             });
             self.next_card = self.deck.draw();
 
@@ -203,7 +208,8 @@ impl Game {
             // Vertical movement (falling)
             let target_y = (playing_card.target.y * self.board.cell_size) as f32;
             if playing_card.is_falling && playing_card.visual_position.y != target_y {
-                let fall_speed = 8.0;
+                // Use faster fall speed for hard drops
+                let fall_speed = if playing_card.is_hard_dropping { 20.0 } else { 8.0 };
                 let diff_y = target_y - playing_card.visual_position.y;
                 let move_y = if diff_y.abs() <= fall_speed {
                     diff_y
@@ -216,8 +222,53 @@ impl Game {
                     playing_card.visual_position.y = target_y;
                     playing_card.position.y = playing_card.target.y;
                     playing_card.is_falling = false;
+                    playing_card.is_hard_dropping = false;
                 }
             }
+        }
+
+        // Update hard-dropping cards that are no longer the current card
+        let mut cards_to_place = Vec::new();
+        for (index, card) in self.hard_dropping_cards.iter_mut().enumerate() {
+            let target_y = (card.target.y * self.board.cell_size) as f32;
+            if card.is_falling && card.visual_position.y != target_y {
+                let fall_speed = 20.0; // Fast fall speed for hard drops
+                let diff_y = target_y - card.visual_position.y;
+                let move_y = if diff_y.abs() <= fall_speed {
+                    diff_y
+                } else {
+                    fall_speed * diff_y.signum()
+                };
+                card.visual_position.y += move_y;
+
+                if (card.visual_position.y - target_y).abs() < 0.1 {
+                    card.visual_position.y = target_y;
+                    card.position.y = card.target.y;
+                    card.is_falling = false;
+                    card.is_hard_dropping = false;
+                    cards_to_place.push(index);
+                }
+            }
+        }
+
+        // Place cards that have finished falling and remove them from hard_dropping_cards
+        for index in cards_to_place.into_iter().rev() {
+            let finished_card = self.hard_dropping_cards.remove(index);
+            // Don't update last_dropped_x here - that should only be set when the player places a card normally
+            self.board.place_card(
+                finished_card.position.x,
+                finished_card.position.y,
+                finished_card.card,
+            );
+
+            // Add audio event for dropping card
+            self.add_audio_event(AudioEvent::DropCard);
+
+            // Process combinations after placing the card
+            self.process_combinations();
+            
+            // Apply gravity to handle any floating cards after combinations
+            while self.board.apply_gravity() {}
         }
     }
 
@@ -356,30 +407,53 @@ impl Game {
     }
 
     pub fn hard_drop(&mut self) {
-        let final_y = if let Some(card) = &self.current_card {
-            let mut y = card.position.y;
-            let card_x = card.position.x;
-            for test_y in (card.position.y + 1)..self.board.height {
-                if self.is_move_valid(card_x, test_y - 1, card_x, test_y) {
-                    y = test_y;
+        if let Some(mut current_card) = self.current_card.take() {
+            // Calculate the final landing position by finding the lowest empty cell
+            // Must check both board occupancy AND hard-dropping cards targeting the same position
+            let mut final_y = current_card.position.y;
+            let card_x = current_card.position.x;
+            
+            for test_y in (current_card.position.y + 1)..self.board.height {
+                // Check if the board cell is empty
+                let board_empty = self.board.is_cell_empty(card_x, test_y);
+                
+                // Check if any hard-dropping card is already targeting this position
+                let no_hard_drop_conflict = !self.hard_dropping_cards.iter().any(|card| {
+                    card.position.x == card_x && card.target.y == test_y
+                });
+                
+                if board_empty && no_hard_drop_conflict {
+                    final_y = test_y;
                 } else {
+                    // Hit an occupied cell or conflicting hard-drop target, stop here
                     break;
                 }
             }
-            Some(y)
-        } else {
-            None
-        };
 
-        if let Some(y) = final_y {
-            if let Some(ref mut playing_card) = self.current_card {
-                if y > playing_card.position.y {
-                    playing_card.target.y = y;
-                    playing_card.position.y = y;
-                    playing_card.is_falling = true;
-                }
+            // Only proceed if the card can actually fall
+            if final_y > current_card.position.y {
+                // Store the X position where the player was positioning this card
+                // This ensures the next card spawns at the player's current position
+                self.last_dropped_x = Some(current_card.position.x);
+                
+                // Set up the card for fast animated falling
+                current_card.target.y = final_y;
+                current_card.is_falling = true;
+                current_card.is_hard_dropping = true;
+
+                // Move the current card to the hard_dropping_cards list
+                self.hard_dropping_cards.push(current_card);
+
+                // Add audio event for hard drop
+                self.add_audio_event(AudioEvent::HardDrop);
+
+                // Immediately spawn a new card so the player can continue playing
+                self.spawn_new_card();
+            } else {
+                // Card can't fall, place it immediately
+                self.current_card = Some(current_card);
+                self.place_current_card();
             }
-            self.place_current_card();
         }
     }
 

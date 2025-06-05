@@ -135,6 +135,20 @@ impl Playing {
                 game.board.cell_size,
             );
         }
+
+        // Draw hard-dropping cards that are still animating
+        for hard_drop_card in &game.hard_dropping_cards {
+            if hard_drop_card.is_falling {
+                DrawingHelpers::draw_card_inline(
+                    d,
+                    card_atlas,
+                    hard_drop_card.card,
+                    BOARD_OFFSET_X + hard_drop_card.visual_position.x as i32,
+                    BOARD_OFFSET_Y + hard_drop_card.visual_position.y as i32,
+                    game.board.cell_size,
+                );
+            }
+        }
     }
 
     fn draw_info_panel(
