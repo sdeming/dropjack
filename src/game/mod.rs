@@ -395,6 +395,9 @@ impl Game {
 
             // Add audio event for dropping card
             self.add_audio_event(AudioEvent::DropCard);
+
+            // Immediately process combinations after a card is placed.
+            self.process_combinations();
         }
     }
 
