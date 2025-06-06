@@ -32,7 +32,7 @@ impl SharedRenderer {
         color: Color,
     ) {
         // Manual centering based on approximate character width
-        let approx_char_width = size * 0.6; // Approximation for most fonts
+        let approx_char_width = size * 0.5; // Approximation for most fonts
         let text_width = text.len() as f32 * approx_char_width;
         let x = (ScreenConfig::WIDTH as f32 - text_width) / 2.0;
 

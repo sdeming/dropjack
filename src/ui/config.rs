@@ -232,9 +232,9 @@ impl InstructionsConfig {
     pub const QUIT_CONFIRM_SPACING: f32 = 1.2;
 
     // Pause instructions
-    pub const PAUSE_FORFEIT_X: f32 = 540.0;
+    pub const PAUSE_FORFEIT_X: f32 = 560.0;
     pub const PAUSE_FORFEIT_Y: f32 = 420.0;
-    pub const PAUSE_RESUME_X: f32 = 535.0;
+    pub const PAUSE_RESUME_X: f32 = 555.0;
     pub const PAUSE_RESUME_Y: f32 = 460.0;
     pub const PAUSE_RESUME_X_ALT: f32 = 495.0;
     pub const PAUSE_QUIT_X: f32 = 505.0;
@@ -265,7 +265,7 @@ impl BackgroundConfig {
     pub const GRADIENT_B_RANGE: f32 = 20.0;
     pub const GRADIENT_B_SIN_MULTIPLIER: f32 = 4.0;
     pub const GRADIENT_B_SIN_FREQUENCY: f32 = 1.7;
-    
+
     // Fabric weave pattern constants
     pub const VERTICAL_WEAVE_LINES: i32 = 15;
     pub const HORIZONTAL_WEAVE_LINES: i32 = 12;
@@ -378,15 +378,15 @@ impl FPSConfig {
     pub const PANEL_X_OFFSET: i32 = 10;
     pub const PANEL_Y: i32 = 10;
     pub const FONT_SIZE: f32 = 20.0;
-    
+
     // Colors
-    pub const GOOD_FPS_COLOR: Color = Color::new(0, 255, 0, 255);      // Green for 55+ FPS
-    pub const MEDIUM_FPS_COLOR: Color = Color::new(255, 255, 0, 255);   // Yellow for 30-55 FPS
-    pub const POOR_FPS_COLOR: Color = Color::new(255, 0, 0, 255);       // Red for <30 FPS
+    pub const GOOD_FPS_COLOR: Color = Color::new(0, 255, 0, 255); // Green for 55+ FPS
+    pub const MEDIUM_FPS_COLOR: Color = Color::new(255, 255, 0, 255); // Yellow for 30-55 FPS
+    pub const POOR_FPS_COLOR: Color = Color::new(255, 0, 0, 255); // Red for <30 FPS
     pub const BACKGROUND_COLOR: Color = Color::new(0, 0, 0, 150);
     pub const BORDER_COLOR: Color = Color::new(255, 255, 255, 100);
     pub const SHADOW_COLOR: Color = Color::new(0, 0, 0, 150);
-    
+
     // Thresholds
     pub const GOOD_FPS_THRESHOLD: f32 = 55.0;
     pub const MEDIUM_FPS_THRESHOLD: f32 = 30.0;
@@ -400,17 +400,17 @@ impl CardRendererConfig {
     pub const SHADOW_LAYER_1_COLOR: Color = Color::new(0, 0, 0, 40);
     pub const SHADOW_LAYER_2_COLOR: Color = Color::new(0, 0, 0, 60);
     pub const SHADOW_LAYER_3_COLOR: Color = Color::new(0, 0, 0, 80);
-    
+
     // Card face colors
     pub const FACE_DARK_COLOR: Color = Color::new(101, 50, 14, 255);
     pub const FACE_MEDIUM_COLOR: Color = Color::new(139, 69, 19, 255);
     pub const FACE_LIGHT_COLOR: Color = Color::new(222, 184, 135, 255);
-    
+
     // Highlight colors
     pub const TOP_HIGHLIGHT_COLOR: Color = Color::new(255, 255, 255, 80);
     pub const LEFT_HIGHLIGHT_COLOR: Color = Color::new(255, 255, 255, 50);
     pub const BORDER_HIGHLIGHT_COLOR: Color = Color::new(255, 255, 255, 30);
-    
+
     // Shadow offsets
     pub const SHADOW_OFFSET_1: i32 = 6;
     pub const SHADOW_OFFSET_2: i32 = 4;

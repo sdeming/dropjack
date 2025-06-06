@@ -31,7 +31,7 @@ impl Paused {
 
         // Draw current score (not final score)
         let score_text = format!("Current Score: {}", game.score);
-        SharedRenderer::draw_text(d, font, &score_text, 500.0, 330.0, 36.0, 1.5, Color::WHITE);
+        SharedRenderer::draw_text(d, font, &score_text, 530.0, 330.0, 36.0, 1.5, Color::WHITE);
 
         // Draw conditional pause instructions based on controller availability
         DrawingHelpers::draw_pause_instructions(d, font, has_controller);

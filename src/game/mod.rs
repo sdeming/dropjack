@@ -5,12 +5,13 @@ pub mod states;
 use self::board::Board;
 use crate::database::Database;
 use crate::models::{
-    Card, Deck, DelayedDestruction, Difficulty, HighScore, PlayingCard, Position, VisualPosition,
+    Card, Deck, DelayedDestruction, Difficulty, GameSettings, HighScore, PlayingCard, Position,
+    VisualPosition,
 };
 use std::path::Path;
 use std::time::{Duration, Instant};
 
-pub use self::states::{GameOver, GameState, Paused, Playing, QuitConfirm, StartScreen};
+pub use self::states::{GameOver, GameState, Paused, Playing, QuitConfirm, Settings, StartScreen};
 
 const COMBINATION_DELAY: u64 = 300;
 
@@ -35,6 +36,7 @@ pub struct Game {
     pub last_dropped_x: Option<i32>,
     pub pending_audio_events: Vec<AudioEvent>,
     pub hard_dropping_cards: Vec<PlayingCard>, // Cards that are hard dropping and still animating
+    pub settings: GameSettings,                // Global game settings
 }
 
 pub struct GameBuilder {
@@ -133,6 +135,7 @@ impl GameBuilder {
             last_dropped_x: None,
             pending_audio_events: Vec::new(),
             hard_dropping_cards: Vec::new(),
+            settings: GameSettings::load(),
         })
     }
 }
@@ -695,6 +698,10 @@ impl Game {
         self.state.state_name() == "QuitConfirm"
     }
 
+    pub fn is_settings(&self) -> bool {
+        self.state.state_name() == "Settings"
+    }
+
     pub fn transition_to_start_screen(&mut self) {
         self.state = Box::new(StartScreen);
         self.add_audio_event(AudioEvent::ReturnToGame);
@@ -720,6 +727,22 @@ impl Game {
         self.add_audio_event(AudioEvent::OpenQuitConfirmation);
     }
 
+    pub fn transition_to_settings(&mut self, previous_state_name: String) {
+        self.state = Box::new(Settings::new(previous_state_name));
+        // Settings screen uses existing audio events - no new event needed
+    }
+
+    pub fn return_from_settings(&mut self, previous_state_name: &str) {
+        match previous_state_name {
+            "StartScreen" => self.transition_to_start_screen(),
+            "Playing" => self.transition_to_playing(),
+            "Paused" => self.transition_to_paused(),
+            "GameOver" => self.transition_to_game_over(),
+            "QuitConfirm" => self.transition_to_quit_confirm(),
+            _ => self.transition_to_start_screen(), // Default fallback
+        }
+    }
+
     // Audio event management
     pub fn add_audio_event(&mut self, event: AudioEvent) {
         self.pending_audio_events.push(event);
@@ -727,6 +750,13 @@ impl Game {
 
     pub fn take_pending_audio_events(&mut self) -> Vec<AudioEvent> {
         std::mem::take(&mut self.pending_audio_events)
+    }
+
+    /// Save current settings to disk
+    pub fn save_settings(&self) {
+        if let Err(e) = self.settings.save() {
+            eprintln!("Failed to save settings: {}", e);
+        }
     }
 }
 

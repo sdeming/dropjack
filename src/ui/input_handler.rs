@@ -99,6 +99,8 @@ impl InputHandler {
             self.handle_game_over_input(rl, game, has_controller);
         } else if game.is_quit_confirm() {
             self.handle_quit_confirm_input(rl, game, has_controller);
+        } else if game.is_settings() {
+            self.handle_settings_input(rl, game, has_controller);
         }
     }
 
@@ -108,6 +110,15 @@ impl InputHandler {
         game: &mut Game,
         has_controller: bool,
     ) {
+        // Handle settings screen
+        if rl.is_key_pressed(KeyboardKey::KEY_S)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_UP))
+        {
+            game.transition_to_settings("StartScreen".to_string());
+            return;
+        }
+
         // Handle difficulty selection
         if InputMapping::is_left_pressed(rl, has_controller)
             || InputMapping::is_right_pressed(rl, has_controller)
@@ -169,6 +180,15 @@ impl InputHandler {
     }
 
     fn handle_paused_input(&self, rl: &mut RaylibHandle, game: &mut Game, has_controller: bool) {
+        // Handle settings screen
+        if rl.is_key_pressed(KeyboardKey::KEY_S)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_UP))
+        {
+            game.transition_to_settings("Paused".to_string());
+            return;
+        }
+
         // Resume game
         if rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
             || rl.is_key_pressed(KeyboardKey::KEY_N)
@@ -335,6 +355,126 @@ impl InputHandler {
             KeyboardKey::KEY_Y => Some('Y'),
             KeyboardKey::KEY_Z => Some('Z'),
             _ => None,
+        }
+    }
+
+    fn handle_settings_input(&self, rl: &mut RaylibHandle, game: &mut Game, has_controller: bool) {
+        const TOTAL_OPTIONS: usize = 3; // Music, SFX, VSync
+
+        // Back to previous screen
+        if rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_RIGHT))
+        {
+            game.transition_to_start_screen();
+            return;
+        }
+
+        // Navigation (Up/Down)
+        if rl.is_key_pressed(KeyboardKey::KEY_UP)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_UP))
+        {
+            if game.settings.selected_option > 0 {
+                game.settings.selected_option -= 1;
+            } else {
+                game.settings.selected_option = TOTAL_OPTIONS - 1; // Wrap to bottom
+            }
+            if !game.settings.sound_effects_muted {
+                game.add_audio_event(crate::game::AudioEvent::MoveLeft);
+            }
+        }
+
+        if rl.is_key_pressed(KeyboardKey::KEY_DOWN)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_DOWN))
+        {
+            game.settings.selected_option = (game.settings.selected_option + 1) % TOTAL_OPTIONS;
+            if !game.settings.sound_effects_muted {
+                game.add_audio_event(crate::game::AudioEvent::MoveRight);
+            }
+        }
+
+        // Adjust values based on current selection (Left/Right)
+        let left_pressed = rl.is_key_pressed(KeyboardKey::KEY_LEFT)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT));
+        let right_pressed = rl.is_key_pressed(KeyboardKey::KEY_RIGHT)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_RIGHT));
+
+        match game.settings.selected_option {
+            0 => {
+                // Music Volume
+                if left_pressed {
+                    game.settings.music_volume = (game.settings.music_volume - 0.1).max(0.0);
+                    if !game.settings.sound_effects_muted {
+                        game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
+                    }
+                    game.save_settings();
+                }
+                if right_pressed {
+                    game.settings.music_volume = (game.settings.music_volume + 0.1).min(1.0);
+                    if !game.settings.sound_effects_muted {
+                        game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
+                    }
+                    game.save_settings();
+                }
+            }
+            1 => {
+                // Sound Effects Volume
+                if left_pressed {
+                    game.settings.sound_effects_volume =
+                        (game.settings.sound_effects_volume - 0.1).max(0.0);
+                    game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
+                    game.save_settings();
+                }
+                if right_pressed {
+                    game.settings.sound_effects_volume =
+                        (game.settings.sound_effects_volume + 0.1).min(1.0);
+                    game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
+                    game.save_settings();
+                }
+            }
+            2 => { // VSync - no left/right adjustment, only toggle
+                // VSync doesn't have adjustable values, only toggle
+            }
+            _ => {}
+        }
+
+        // Toggle actions (Space/A button)
+        if rl.is_key_pressed(KeyboardKey::KEY_SPACE)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_DOWN))
+        {
+            match game.settings.selected_option {
+                0 => {
+                    // Music Mute Toggle
+                    game.settings.music_muted = !game.settings.music_muted;
+                    if !game.settings.sound_effects_muted {
+                        game.add_audio_event(crate::game::AudioEvent::PauseGame);
+                    }
+                    game.save_settings();
+                }
+                1 => {
+                    // Sound Effects Mute Toggle
+                    let was_muted = game.settings.sound_effects_muted;
+                    game.settings.sound_effects_muted = !game.settings.sound_effects_muted;
+                    if was_muted && !game.settings.sound_effects_muted {
+                        game.add_audio_event(crate::game::AudioEvent::ResumeGame);
+                    }
+                    game.save_settings();
+                }
+                2 => {
+                    // VSync Toggle
+                    game.settings.vsync_enabled = !game.settings.vsync_enabled;
+                    if !game.settings.sound_effects_muted {
+                        game.add_audio_event(crate::game::AudioEvent::StartGame);
+                    }
+                    game.save_settings();
+                }
+                _ => {}
+            }
         }
     }
 }
