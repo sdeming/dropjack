@@ -505,15 +505,15 @@ impl MenuRenderer {
 
         // Draw instructions
         let instruction_text = if has_controller {
-            "D-Pad Up/Down: Navigate | A: Select | B: Quit"
+            "D-Pad Up/Down: Navigate | A: Select"
         } else {
-            "Up/Down: Navigate | ENTER: Select | ESC: Quit"
+            "Up/Down: Navigate | ENTER: Select"
         };
 
         // measure instruction_text to get offset to center the text
         let instruction_width =
             d.measure_text(instruction_text, MainMenuConfig::INSTRUCTION_SIZE as i32);
-        let instruction_x: f32 = 60f32 + (ScreenConfig::WIDTH - instruction_width) as f32 / 2f32;
+        let instruction_x: f32 = 30f32 + (ScreenConfig::WIDTH - instruction_width) as f32 / 2f32;
 
         d.draw_text_ex(
             font,

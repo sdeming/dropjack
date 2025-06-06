@@ -68,7 +68,7 @@ impl InputMapping {
 
     /// Check if any "action/space" input is pressed
     fn is_action_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
-        rl.is_key_pressed(KeyboardKey::KEY_SPACE)
+        rl.is_key_pressed(KeyboardKey::KEY_SPACE) || rl.is_key_pressed(KeyboardKey::KEY_ENTER)
             || (has_controller
                 && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_DOWN))
     }
@@ -84,6 +84,12 @@ impl InputMapping {
     fn is_confirm_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
         rl.is_key_pressed(KeyboardKey::KEY_ENTER)
             || rl.is_key_pressed(KeyboardKey::KEY_SPACE)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT))
+    }
+    
+    fn is_pause_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
             || (has_controller
                 && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT))
     }
@@ -145,7 +151,7 @@ impl InputHandler {
         }
 
         // Handle selection
-        if InputMapping::is_confirm_pressed(rl, has_controller) {
+        if InputMapping::is_action_pressed(rl, has_controller) {
             match game.selected_main_option {
                 0 => {
                     // Start New Game
@@ -200,7 +206,7 @@ impl InputHandler {
         }
 
         // Handle pause
-        if InputMapping::is_escape_pressed(rl, has_controller) {
+        if InputMapping::is_pause_pressed(rl, has_controller) {
             game.transition_to_paused();
         }
     }
