@@ -42,6 +42,10 @@ impl GameState for Playing {
             true,
         );
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
 
 impl Playing {

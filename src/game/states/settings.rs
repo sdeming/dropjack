@@ -201,13 +201,27 @@ impl Settings {
             vsync_color,
         );
 
-        // Difficulty
-        let difficulty_text = match settings.difficulty {
-            crate::models::Difficulty::Easy => "Difficulty: Easy",
-            crate::models::Difficulty::Hard => "Difficulty: Hard",
+        // Difficulty - check if game session is active to determine if it's locked
+        let is_game_session_active = game.game_session_active;
+        let difficulty_text = if is_game_session_active {
+            match settings.difficulty {
+                crate::models::Difficulty::Easy => "Difficulty: Easy (LOCKED)",
+                crate::models::Difficulty::Hard => "Difficulty: Hard (LOCKED)",
+            }
+        } else {
+            match settings.difficulty {
+                crate::models::Difficulty::Easy => "Difficulty: Easy",
+                crate::models::Difficulty::Hard => "Difficulty: Hard",
+            }
         };
         let difficulty_color = if selected_option == 3 {
-            Color::YELLOW
+            if is_game_session_active {
+                Color::ORANGE // Different color when locked
+            } else {
+                Color::YELLOW
+            }
+        } else if is_game_session_active {
+            Color::GRAY // Grayed out when locked
         } else {
             Color::WHITE
         };
@@ -340,9 +354,43 @@ impl OverlayState for Settings {
         &mut ParticleSystem,
         &mut AnimatedBackground,
     ) {
-        // Use start screen background since settings can be accessed from multiple places
-        // This provides a neutral, pleasant background for the settings overlay
+        // This static method is not used since we override render_overlay
         BackgroundRenderer::render_start_screen
+    }
+
+    /// Custom overlay rendering that chooses background based on previous state
+    fn render_overlay(
+        &self,
+        d: &mut RaylibDrawHandle,
+        game: &Game,
+        has_controller: bool,
+        title_font: &Font,
+        font: &Font,
+        card_atlas: &Texture2D,
+        particle_system: &mut ParticleSystem,
+        animated_background: &mut AnimatedBackground,
+    ) {
+        // Choose background renderer based on previous state
+        let background_renderer = match self.previous_state_name.as_str() {
+            "Playing" => BackgroundRenderer::render_game_view,
+            "StartScreen" | _ => BackgroundRenderer::render_start_screen, // Default to start screen
+        };
+
+        SharedRenderer::render_with_overlay(
+            d,
+            game,
+            has_controller,
+            title_font,
+            font,
+            card_atlas,
+            particle_system,
+            animated_background,
+            background_renderer,
+            self.get_overlay_alpha(),
+            |d, game, has_controller, title_font, font| {
+                self.render_overlay_content(d, game, has_controller, title_font, font)
+            },
+        );
     }
 }
 
@@ -372,5 +420,9 @@ impl GameState for Settings {
             particle_system,
             animated_background,
         );
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
     }
 }

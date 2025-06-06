@@ -38,6 +38,7 @@ pub struct Game {
     pub hard_dropping_cards: Vec<PlayingCard>, // Cards that are hard dropping and still animating
     pub settings: GameSettings,                // Global game settings
     pub selected_main_option: usize,           // 0: Start New Game, 1: Settings, 2: Quit
+    pub game_session_active: bool,             // Track if a game session is currently active
 }
 
 pub struct GameBuilder {
@@ -140,6 +141,7 @@ impl GameBuilder {
             hard_dropping_cards: Vec::new(),
             settings,
             selected_main_option: 0,
+            game_session_active: false,
         })
     }
 }
@@ -180,6 +182,7 @@ impl Game {
         self.player_initials = String::new();
         self.last_dropped_x = None;
         self.hard_dropping_cards.clear();
+        self.game_session_active = true; // Mark game session as active
 
         // Reset the board
         self.board = Board::new(self.board.width, self.board.height, 48);
@@ -402,12 +405,12 @@ impl Game {
 
         // Check for diagonal clipping: if moving both horizontally and vertically,
         // ensure the corner cell is also empty to prevent clipping.
-        if new_x != current_x && new_y != current_y {
-            if !self.board.is_cell_empty(current_x, new_y)
-                || !self.board.is_cell_empty(new_x, current_y)
-            {
-                return false;
-            }
+        if new_x != current_x
+            && new_y != current_y
+            && (!self.board.is_cell_empty(current_x, new_y)
+                || !self.board.is_cell_empty(new_x, current_y))
+        {
+            return false;
         }
 
         true
@@ -708,6 +711,7 @@ impl Game {
 
     pub fn transition_to_start_screen(&mut self) {
         self.state = Box::new(StartScreen);
+        self.game_session_active = false; // End game session when returning to start screen
         self.add_audio_event(AudioEvent::ReturnToGame);
     }
 
@@ -734,17 +738,6 @@ impl Game {
     pub fn transition_to_settings(&mut self, previous_state_name: String) {
         self.state = Box::new(Settings::new(previous_state_name));
         // Settings screen uses existing audio events - no new event needed
-    }
-
-    pub fn return_from_settings(&mut self, previous_state_name: &str) {
-        match previous_state_name {
-            "StartScreen" => self.transition_to_start_screen(),
-            "Playing" => self.transition_to_playing(),
-            "Paused" => self.transition_to_paused(),
-            "GameOver" => self.transition_to_game_over(),
-            "QuitConfirm" => self.transition_to_quit_confirm(),
-            _ => self.transition_to_start_screen(), // Default fallback
-        }
     }
 
     // Audio event management

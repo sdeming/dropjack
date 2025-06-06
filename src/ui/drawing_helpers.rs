@@ -47,11 +47,6 @@ impl DrawingHelpers {
         TextRenderer::draw_subtitle(d, font);
     }
 
-    // Re-export menu rendering functions
-    pub fn draw_main_panel(d: &mut RaylibDrawHandle) {
-        MenuRenderer::draw_main_panel(d);
-    }
-
     pub fn draw_main_menu(
         d: &mut RaylibDrawHandle,
         font: &Font,
@@ -61,16 +56,6 @@ impl DrawingHelpers {
         MenuRenderer::draw_main_menu(d, font, game, has_controller);
     }
 
-    pub fn draw_difficulty_selector(
-        d: &mut RaylibDrawHandle,
-        title_font: &Font,
-        font: &Font,
-        game: &Game,
-        has_controller: bool,
-    ) {
-        MenuRenderer::draw_difficulty_selector(d, title_font, font, game, has_controller);
-    }
-
     pub fn draw_high_scores_panel(
         d: &mut RaylibDrawHandle,
         title_font: &Font,
@@ -78,10 +63,6 @@ impl DrawingHelpers {
         game: &Game,
     ) {
         MenuRenderer::draw_high_scores_panel(d, title_font, font, game);
-    }
-
-    pub fn draw_start_button(d: &mut RaylibDrawHandle, title_font: &Font, has_controller: bool) {
-        MenuRenderer::draw_start_button(d, title_font, has_controller);
     }
 
     // Re-export instruction rendering functions

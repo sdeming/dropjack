@@ -2,6 +2,7 @@ use crate::game::Game;
 use crate::ui::animated_background::AnimatedBackground;
 use crate::ui::particle_system::ParticleSystem;
 use raylib::prelude::*;
+use std::any::Any;
 
 // Trait that all game states must implement
 pub trait GameState {
@@ -22,4 +23,7 @@ pub trait GameState {
         particle_system: &mut ParticleSystem,
         animated_background: &mut AnimatedBackground,
     );
+
+    // Enable downcasting for accessing specific state data
+    fn as_any(&self) -> &dyn Any;
 }

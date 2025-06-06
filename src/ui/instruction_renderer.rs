@@ -66,7 +66,10 @@ impl InstructionRenderer {
                     InstructionsConfig::SOFT_DROP_COLOR,
                 ),
                 ("A Button: Hard drop", InstructionsConfig::HARD_DROP_COLOR),
-                ("Start: Pause", InstructionsConfig::PAUSE_COLOR),
+                (
+                    "Menu: Settings | Start: Pause",
+                    InstructionsConfig::PAUSE_COLOR,
+                ),
             ],
             false => [
                 (
@@ -75,7 +78,7 @@ impl InstructionRenderer {
                 ),
                 ("Down Arrow: Soft drop", InstructionsConfig::SOFT_DROP_COLOR),
                 ("Space: Hard drop", InstructionsConfig::HARD_DROP_COLOR),
-                ("Escape: Pause", InstructionsConfig::PAUSE_COLOR),
+                ("ESC: Settings | P: Pause", InstructionsConfig::PAUSE_COLOR),
             ],
         };
 
@@ -218,7 +221,7 @@ impl InstructionRenderer {
         } else {
             d.draw_text_ex(
                 font,
-                "Press N or ESC to Resume",
+                "Press N/ESC/P to Resume",
                 Vector2::new(
                     InstructionsConfig::PAUSE_RESUME_X_ALT,
                     InstructionsConfig::PAUSE_FORFEIT_Y,

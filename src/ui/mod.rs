@@ -43,8 +43,7 @@ pub struct FontCollection {
     small: Font,
     /// Medium text (24-48px) - loaded at base size 48  
     medium: Font,
-    /// Large text (48-96px) - loaded at base size 96
-    large: Font,
+
     /// Extra large text (96px+) - loaded at base size 120
     extra_large: Font,
 }
@@ -77,13 +76,7 @@ impl FontCollection {
             48,
             &format!("{} (medium)", description),
         );
-        let large = Self::load_font_ex(
-            rl,
-            thread,
-            font_path,
-            96,
-            &format!("{} (large)", description),
-        );
+
         // For title font, load at 120px which is the exact size used (TextConfig::TITLE_SIZE)
         let extra_large = Self::load_font_ex(
             rl,
@@ -96,7 +89,6 @@ impl FontCollection {
         FontCollection {
             small,
             medium,
-            large,
             extra_large,
         }
     }
@@ -169,25 +161,10 @@ impl FontCollection {
                 width: font.texture().width,
                 height: font.texture().height,
                 mipmaps: font.texture().mipmaps,
-                format: font.texture().format as i32,
+                format: font.texture().format,
             };
             SetTextureFilter(texture_id, TextureFilter::TEXTURE_FILTER_BILINEAR as i32);
         }
-    }
-
-    /// Get the most appropriate font for a given text size
-    pub fn get_font_for_size(&self, size: f32) -> &Font {
-        match size {
-            s if s <= 24.0 => &self.small,
-            s if s <= 48.0 => &self.medium,
-            s if s <= 96.0 => &self.large,
-            _ => &self.extra_large, // This will be perfect for 120px title text
-        }
-    }
-
-    /// Get the default/medium font for backward compatibility
-    pub fn default(&self) -> &Font {
-        &self.medium
     }
 }
 
@@ -284,26 +261,6 @@ impl GameUI {
             animated_background: AnimatedBackground::new(),
             audio_system,
         }
-    }
-
-    /// Get the optimal font for a given text size (default font family)
-    pub fn get_font(&self, size: f32) -> &Font {
-        self.default_fonts.get_font_for_size(size)
-    }
-
-    /// Get the optimal title font for a given text size
-    pub fn get_title_font(&self, size: f32) -> &Font {
-        self.title_fonts.get_font_for_size(size)
-    }
-
-    /// Get the default font (for backward compatibility)
-    pub fn font(&self) -> &Font {
-        self.default_fonts.default()
-    }
-
-    /// Get the title font (for backward compatibility)
-    pub fn title_font(&self) -> &Font {
-        self.title_fonts.default()
     }
 
     pub fn run(&mut self, game: &mut Game) {

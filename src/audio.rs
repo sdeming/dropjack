@@ -218,11 +218,6 @@ impl AudioSystem {
         self.music_playing
     }
 
-    /// Get current music volume
-    pub fn get_music_volume(&self) -> f32 {
-        self.current_music_volume
-    }
-
     /// List which sounds are loaded and which are using fallback
     pub fn print_audio_status(&self) {
         let config = Self::get_audio_config();

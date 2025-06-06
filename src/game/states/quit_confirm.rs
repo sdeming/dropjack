@@ -87,4 +87,8 @@ impl GameState for QuitConfirm {
             animated_background,
         );
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }

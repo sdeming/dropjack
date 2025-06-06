@@ -1,4 +1,4 @@
-use crate::game::Game;
+use crate::game::{Game, Settings};
 use raylib::prelude::*;
 
 pub struct InputHandler {
@@ -10,22 +10,6 @@ pub struct InputHandler {
 struct InputMapping;
 
 impl InputMapping {
-    /// Check if any "left" input is pressed
-    fn is_left_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
-        rl.is_key_pressed(KeyboardKey::KEY_LEFT)
-            || (has_controller
-                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_LEFT)
-                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) < -0.3))
-    }
-
-    /// Check if any "right" input is pressed
-    fn is_right_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
-        rl.is_key_pressed(KeyboardKey::KEY_RIGHT)
-            || (has_controller
-                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_RIGHT)
-                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) > 0.3))
-    }
-
     /// Check if any "left" input is held down
     fn is_left_down(rl: &RaylibHandle, has_controller: bool) -> bool {
         rl.is_key_down(KeyboardKey::KEY_LEFT)
@@ -68,7 +52,8 @@ impl InputMapping {
 
     /// Check if any "action/space" input is pressed
     fn is_action_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
-        rl.is_key_pressed(KeyboardKey::KEY_SPACE) || rl.is_key_pressed(KeyboardKey::KEY_ENTER)
+        rl.is_key_pressed(KeyboardKey::KEY_SPACE)
+            || rl.is_key_pressed(KeyboardKey::KEY_ENTER)
             || (has_controller
                 && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_DOWN))
     }
@@ -80,14 +65,13 @@ impl InputMapping {
                 && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_LEFT))
     }
 
-    /// Check if any "confirm/enter" input is pressed
-    fn is_confirm_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
-        rl.is_key_pressed(KeyboardKey::KEY_ENTER)
-            || rl.is_key_pressed(KeyboardKey::KEY_SPACE)
+    /// Check if any "settings" input is pressed
+    fn is_settings_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
             || (has_controller
-                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT))
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_LEFT))
     }
-    
+
     fn is_pause_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
         rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
             || (has_controller
@@ -105,6 +89,11 @@ impl InputHandler {
 
     pub fn is_controller_connected(rl: &RaylibHandle) -> bool {
         rl.is_gamepad_available(0)
+    }
+
+    /// Check if a game session is currently active (difficulty should be locked)
+    fn is_game_session_active(game: &Game) -> bool {
+        game.game_session_active
     }
 
     pub fn handle_input(&mut self, rl: &mut RaylibHandle, game: &mut Game) {
@@ -205,25 +194,25 @@ impl InputHandler {
             game.hard_drop();
         }
 
-        // Handle pause
-        if InputMapping::is_pause_pressed(rl, has_controller) {
+        // Handle settings (escape/menu button)
+        if InputMapping::is_settings_pressed(rl, has_controller) {
+            game.transition_to_settings("Playing".to_string());
+        }
+
+        // Handle traditional pause (P key or start button)
+        if rl.is_key_pressed(KeyboardKey::KEY_P)
+            || (has_controller
+                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT))
+        {
             game.transition_to_paused();
         }
     }
 
     fn handle_paused_input(&self, rl: &mut RaylibHandle, game: &mut Game, has_controller: bool) {
-        // Handle settings screen
-        if rl.is_key_pressed(KeyboardKey::KEY_S)
-            || (has_controller
-                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_UP))
-        {
-            game.transition_to_settings("Paused".to_string());
-            return;
-        }
-
         // Resume game
         if rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
             || rl.is_key_pressed(KeyboardKey::KEY_N)
+            || rl.is_key_pressed(KeyboardKey::KEY_P)
             || (has_controller
                 && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_MIDDLE_RIGHT)
                     || rl.is_gamepad_button_pressed(
@@ -398,7 +387,16 @@ impl InputHandler {
             || (has_controller
                 && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_RIGHT_FACE_RIGHT))
         {
-            game.transition_to_start_screen();
+            // Get the previous state from the current Settings state
+            if let Some(settings_state) = game.state.as_any().downcast_ref::<Settings>() {
+                match settings_state.previous_state_name.as_str() {
+                    "Playing" => game.transition_to_playing(),
+                    "StartScreen" => game.transition_to_start_screen(),
+                    _ => game.transition_to_start_screen(), // Default fallback
+                }
+            } else {
+                game.transition_to_start_screen(); // Fallback if we can't determine previous state
+            }
             return;
         }
 
@@ -472,8 +470,8 @@ impl InputHandler {
                 // VSync doesn't have adjustable values, only toggle
             }
             3 => {
-                // Difficulty
-                if left_pressed || right_pressed {
+                // Difficulty - only allow changes when no game session is active
+                if (left_pressed || right_pressed) && !Self::is_game_session_active(game) {
                     game.settings.difficulty = match game.settings.difficulty {
                         crate::models::Difficulty::Easy => crate::models::Difficulty::Hard,
                         crate::models::Difficulty::Hard => crate::models::Difficulty::Easy,
@@ -521,17 +519,19 @@ impl InputHandler {
                     game.save_settings();
                 }
                 3 => {
-                    // Difficulty Toggle (same as left/right)
-                    game.settings.difficulty = match game.settings.difficulty {
-                        crate::models::Difficulty::Easy => crate::models::Difficulty::Hard,
-                        crate::models::Difficulty::Hard => crate::models::Difficulty::Easy,
-                    };
-                    // Also update the main game difficulty for consistency
-                    game.difficulty = game.settings.difficulty;
-                    if !game.settings.sound_effects_muted {
-                        game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
+                    // Difficulty Toggle (same as left/right) - only when no game session is active
+                    if !Self::is_game_session_active(game) {
+                        game.settings.difficulty = match game.settings.difficulty {
+                            crate::models::Difficulty::Easy => crate::models::Difficulty::Hard,
+                            crate::models::Difficulty::Hard => crate::models::Difficulty::Easy,
+                        };
+                        // Also update the main game difficulty for consistency
+                        game.difficulty = game.settings.difficulty;
+                        if !game.settings.sound_effects_muted {
+                            game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
+                        }
+                        game.save_settings();
                     }
-                    game.save_settings();
                 }
                 _ => {}
             }

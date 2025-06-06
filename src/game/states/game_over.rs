@@ -138,4 +138,8 @@ impl GameState for GameOver {
             animated_background,
         );
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }

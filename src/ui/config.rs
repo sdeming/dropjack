@@ -12,27 +12,6 @@ impl ScreenConfig {
     pub const HEIGHT: i32 = 800;
 }
 
-/// Menu panel styling and layout
-pub struct MenuConfig;
-
-impl MenuConfig {
-    // Panel dimensions and position
-    pub const PANEL_X: i32 = 290;
-    pub const PANEL_Y: i32 = 260;
-    pub const PANEL_WIDTH: i32 = 700;
-    pub const PANEL_HEIGHT: i32 = 380;
-    pub const CORNER_SIZE: i32 = 15;
-    pub const SHADOW_OFFSET_X: i32 = 4;
-    pub const SHADOW_OFFSET_Y: i32 = 4;
-
-    // Panel colors
-    pub const PANEL_BG_COLOR: Color = Color::new(20, 30, 50, 200);
-    pub const PANEL_BORDER_COLOR: Color = Color::new(100, 150, 255, 255);
-    pub const PANEL_BORDER_GLOW_COLOR: Color = Color::new(100, 150, 255, 100);
-    pub const CORNER_COLOR: Color = Color::new(255, 215, 0, 255);
-    pub const SHADOW_COLOR: Color = Color::new(0, 0, 0, 50);
-}
-
 /// Text styling and typography
 pub struct TextConfig;
 
@@ -77,44 +56,6 @@ impl AnimationConfig {
     pub const RANDOMNESS: f32 = 50.0;
 }
 
-/// Difficulty selector configuration
-pub struct DifficultyConfig;
-
-impl DifficultyConfig {
-    // Layout
-    pub const BASE_X: i32 = 340;
-    pub const BASE_Y: i32 = 300;
-    pub const BUTTON_Y_OFFSET: i32 = 60;
-    pub const BUTTON_WIDTH: i32 = 120;
-    pub const BUTTON_HEIGHT: i32 = 50;
-    pub const HARD_BUTTON_X_OFFSET: i32 = 140;
-    pub const EASY_TEXT_X_OFFSET: i32 = 35;
-    pub const EASY_TEXT_Y_OFFSET: i32 = 12;
-    pub const HARD_TEXT_X_OFFSET: i32 = 35;
-    pub const HARD_TEXT_Y_OFFSET: i32 = 12;
-    pub const INSTRUCTION_X_OFFSET: i32 = 280;
-    pub const INSTRUCTION_Y_OFFSET: i32 = 14;
-
-    // Colors
-    pub const EASY_SELECTED_BG: Color = Color::new(0, 150, 0, 255);
-    pub const EASY_UNSELECTED_BG: Color = Color::new(40, 60, 40, 255);
-    pub const HARD_SELECTED_BG: Color = Color::new(150, 0, 0, 255);
-    pub const HARD_UNSELECTED_BG: Color = Color::new(60, 40, 40, 255);
-    pub const SELECTED_TEXT_COLOR: Color = Color::WHITE;
-    pub const UNSELECTED_TEXT_COLOR: Color = Color::new(180, 180, 180, 255);
-    pub const CONTROLLER_INSTRUCTION_COLOR: Color = Color::new(150, 200, 255, 255);
-    pub const KEYBOARD_INSTRUCTION_COLOR: Color = Color::new(200, 200, 200, 255);
-
-    // Typography
-    pub const TITLE_SIZE: f32 = 40.0;
-    pub const TITLE_SPACING: f32 = 1.4;
-    pub const BUTTON_TEXT_SIZE: f32 = 24.0;
-    pub const BUTTON_TEXT_SPACING: f32 = 1.0;
-    pub const INSTRUCTION_SIZE: f32 = 18.0;
-    pub const INSTRUCTION_SPACING: f32 = 1.0;
-    pub const TITLE_COLOR: Color = Color::new(255, 215, 0, 255);
-}
-
 /// High score display configuration
 pub struct HighScoreConfig;
 
@@ -135,7 +76,6 @@ impl HighScoreConfig {
     pub const BACKGROUND_Y_OFFSET: i32 = -10;
     pub const BACKGROUND_WIDTH: i32 = 540;
     pub const BACKGROUND_HEIGHT: i32 = 190;
-    pub const BACKGROUND_CORNER_RADIUS: f32 = 8.0;
 
     // Colors
     pub const GOLD_COLOR: Color = Color::new(255, 215, 0, 255);
@@ -189,38 +129,6 @@ impl MainMenuConfig {
     pub const TEXT_SPACING: f32 = 1.2;
     pub const INSTRUCTION_SIZE: f32 = 22.0;
     pub const INSTRUCTION_SPACING: f32 = 1.0;
-}
-
-/// Start button configuration
-pub struct StartButtonConfig;
-
-impl StartButtonConfig {
-    // Layout
-    pub const X: i32 = 440;
-    pub const Y: i32 = 700;
-    pub const WIDTH: i32 = 400;
-    pub const HEIGHT: i32 = 80;
-    pub const GLOW_LAYERS: i32 = 6;
-    pub const GLOW_SIZE_MULTIPLIER: i32 = 3;
-    pub const GLOW_ALPHA_BASE: i32 = 25;
-    pub const GLOW_ALPHA_DECREMENT: i32 = 4;
-    pub const CONTROLLER_TEXT_X_OFFSET: i32 = 85;
-    pub const CONTROLLER_TEXT_Y_OFFSET: i32 = 25;
-    pub const KEYBOARD_TEXT_X_OFFSET: i32 = 80;
-    pub const KEYBOARD_TEXT_Y_OFFSET: i32 = 25;
-
-    // Colors
-    pub const MAIN_COLOR: Color = Color::new(0, 180, 0, 255);
-    pub const HIGHLIGHT_COLOR: Color = Color::new(0, 220, 0, 100);
-    pub const BORDER_COLOR: Color = Color::new(0, 255, 100, 255);
-    pub const OUTER_BORDER_COLOR: Color = Color::new(255, 255, 255, 150);
-    pub const TEXT_SHADOW_COLOR: Color = Color::new(0, 0, 0, 150);
-    pub const TEXT_COLOR: Color = Color::WHITE;
-
-    // Typography
-    pub const TEXT_SIZE: f32 = 28.0;
-    pub const TEXT_SPACING: f32 = 1.2;
-    pub const SHADOW_OFFSET: f32 = 2.0;
 }
 
 /// Instructions and controls configuration

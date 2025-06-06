@@ -44,4 +44,8 @@ impl GameState for StartScreen {
         // High scores in two columns (Easy/Hard)
         DrawingHelpers::draw_high_scores_panel(d, title_font, font, game);
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
