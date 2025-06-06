@@ -1,3 +1,16 @@
+//! UI Module
+//! 
+//! This module handles all user interface rendering and interaction for the DropJack game.
+//! It provides a clean abstraction over raylib graphics operations and maintains a structured
+//! configuration system for consistent UI styling and behavior.
+//! 
+//! Key components:
+//! - Configuration system with organized constants for each UI component
+//! - Particle system for visual effects
+//! - Input handling with both keyboard and controller support
+//! - Modular rendering components for different game states
+//! - Performance monitoring with FPS counter
+
 // Sub-modules
 pub mod animated_background;
 mod atlas_card_renderer;
@@ -15,7 +28,7 @@ mod text_renderer;
 pub use drawing_helpers::DrawingHelpers;
 
 use self::animated_background::AnimatedBackground;
-use self::config::{BoardConfig, ParticleConfig, PerformanceConfig, ScreenConfig};
+use self::config::{BoardConfig, FPSConfig, ParticleConfig, PerformanceConfig, ScreenConfig};
 // Board offset constants are now in ScreenConfig
 use self::input_handler::InputHandler;
 use self::particle_system::ParticleSystem;
@@ -136,9 +149,6 @@ impl GameUI {
         // Update FPS counter
         self.fps_counter.update(delta_time);
 
-        // Detect controller availability
-        let _has_controller = InputHandler::is_controller_connected(&self.rl);
-
         // Handle input
         self.input_handler.handle_input(&mut self.rl, game);
 
@@ -191,55 +201,50 @@ impl GameUI {
 
     /// Renders FPS counter with improved styling (static method to avoid borrowing issues)
     fn render_fps_counter_static(d: &mut RaylibDrawHandle, font: &Font, fps: f32) {
-        const FPS_PANEL_WIDTH: i32 = 95;
-        const FPS_PANEL_HEIGHT: i32 = 30;
-        const FPS_PANEL_X: i32 = ScreenConfig::WIDTH - FPS_PANEL_WIDTH - 10;
-        const FPS_PANEL_Y: i32 = 10;
-        const FPS_FONT_SIZE: f32 = 20.0;
-
+        let fps_panel_x = ScreenConfig::WIDTH - FPSConfig::PANEL_WIDTH - FPSConfig::PANEL_X_OFFSET;
         let fps_text = format!("FPS: {:.1}", fps);
 
-        // Choose color based on FPS performance
+        // Choose color based on FPS performance using configuration
         let fps_color = match fps {
-            f if f >= 55.0 => Color::new(0, 255, 0, 255), // Green for good FPS
-            f if f >= 30.0 => Color::new(255, 255, 0, 255), // Yellow for medium FPS
-            _ => Color::new(255, 0, 0, 255),              // Red for poor FPS
+            f if f >= FPSConfig::GOOD_FPS_THRESHOLD => FPSConfig::GOOD_FPS_COLOR,
+            f if f >= FPSConfig::MEDIUM_FPS_THRESHOLD => FPSConfig::MEDIUM_FPS_COLOR,
+            _ => FPSConfig::POOR_FPS_COLOR,
         };
 
         // Draw background panel for better visibility
         d.draw_rectangle(
-            FPS_PANEL_X - 10,
-            FPS_PANEL_Y - 5,
-            FPS_PANEL_WIDTH,
-            FPS_PANEL_HEIGHT,
-            Color::new(0, 0, 0, 150),
+            fps_panel_x - 10,
+            FPSConfig::PANEL_Y - 5,
+            FPSConfig::PANEL_WIDTH,
+            FPSConfig::PANEL_HEIGHT,
+            FPSConfig::BACKGROUND_COLOR,
         );
 
         // Draw border
         d.draw_rectangle_lines(
-            FPS_PANEL_X - 10,
-            FPS_PANEL_Y - 5,
-            FPS_PANEL_WIDTH,
-            FPS_PANEL_HEIGHT,
-            Color::new(255, 255, 255, 100),
+            fps_panel_x - 10,
+            FPSConfig::PANEL_Y - 5,
+            FPSConfig::PANEL_WIDTH,
+            FPSConfig::PANEL_HEIGHT,
+            FPSConfig::BORDER_COLOR,
         );
 
         // Draw shadow
         d.draw_text_ex(
             font,
             &fps_text,
-            Vector2::new((FPS_PANEL_X + 1) as f32, (FPS_PANEL_Y + 1) as f32),
-            FPS_FONT_SIZE,
+            Vector2::new((fps_panel_x + 1) as f32, (FPSConfig::PANEL_Y + 1) as f32),
+            FPSConfig::FONT_SIZE,
             1.0,
-            Color::new(0, 0, 0, 150),
+            FPSConfig::SHADOW_COLOR,
         );
 
         // Draw main text
         d.draw_text_ex(
             font,
             &fps_text,
-            Vector2::new(FPS_PANEL_X as f32, FPS_PANEL_Y as f32),
-            FPS_FONT_SIZE,
+            Vector2::new(fps_panel_x as f32, FPSConfig::PANEL_Y as f32),
+            FPSConfig::FONT_SIZE,
             1.0,
             fps_color,
         );

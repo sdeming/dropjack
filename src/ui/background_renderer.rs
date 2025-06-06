@@ -320,30 +320,30 @@ impl BackgroundRenderer {
         }
 
         // Add a subtle fabric weave pattern
-        for i in 0..15 {
-            let spacing = board_pixel_width / 15;
+        for i in 0..BackgroundConfig::VERTICAL_WEAVE_LINES {
+            let spacing = board_pixel_width / BackgroundConfig::VERTICAL_WEAVE_LINES;
             let x = BoardConfig::OFFSET_X + i * spacing;
-            for j in 0..3 {
+            for j in 0..BackgroundConfig::WEAVE_LINE_VARIATIONS {
                 d.draw_line(
                     x + j,
                     BoardConfig::OFFSET_Y,
                     x + j,
                     BoardConfig::OFFSET_Y + board_pixel_height,
-                    Color::new(0, 0, 0, (8 + j * 3) as u8),
+                    Color::new(0, 0, 0, (BackgroundConfig::WEAVE_BASE_ALPHA + j * BackgroundConfig::WEAVE_ALPHA_STEP) as u8),
                 );
             }
         }
 
-        for i in 0..12 {
-            let spacing = board_pixel_height / 12;
+        for i in 0..BackgroundConfig::HORIZONTAL_WEAVE_LINES {
+            let spacing = board_pixel_height / BackgroundConfig::HORIZONTAL_WEAVE_LINES;
             let y = BoardConfig::OFFSET_Y + i * spacing;
-            for j in 0..3 {
+            for j in 0..BackgroundConfig::WEAVE_LINE_VARIATIONS {
                 d.draw_line(
                     BoardConfig::OFFSET_X,
                     y + j,
                     BoardConfig::OFFSET_X + board_pixel_width,
                     y + j,
-                    Color::new(0, 0, 0, (8 + j * 3) as u8),
+                    Color::new(0, 0, 0, (BackgroundConfig::WEAVE_BASE_ALPHA + j * BackgroundConfig::WEAVE_ALPHA_STEP) as u8),
                 );
             }
         }
