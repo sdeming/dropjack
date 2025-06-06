@@ -1,9 +1,9 @@
 //! UI Module
-//! 
+//!
 //! This module handles all user interface rendering and interaction for the DropJack game.
 //! It provides a clean abstraction over raylib graphics operations and maintains a structured
 //! configuration system for consistent UI styling and behavior.
-//! 
+//!
 //! Key components:
 //! - Configuration system with organized constants for each UI component
 //! - Particle system for visual effects
@@ -152,8 +152,14 @@ impl GameUI {
         // Handle input
         self.input_handler.handle_input(&mut self.rl, game);
 
-        // Update game state (only when not paused)
-        if !game.is_paused() {
+        // Apply VSync setting if it changed
+        self.apply_vsync_setting(game);
+
+        // Apply music settings
+        self.apply_music_settings(game);
+
+        // Update game state (only when not paused and not in settings)
+        if !game.is_paused() && !game.is_settings() {
             game.update();
         }
 
@@ -274,8 +280,40 @@ impl GameUI {
     fn process_audio_events(&mut self, game: &mut Game) {
         let audio_events = game.take_pending_audio_events();
         for event in audio_events {
-            // Play the appropriate sound for each specific event
-            self.audio_system.play_event(event, &mut self.rl);
+            // Play the appropriate sound for each specific event with volume settings
+            let settings = &game.settings;
+            self.audio_system.play_event(
+                event,
+                settings.sound_effects_volume,
+                settings.sound_effects_muted,
+                &mut self.rl,
+            );
+        }
+    }
+
+    /// Apply VSync setting changes
+    fn apply_vsync_setting(&mut self, game: &Game) {
+        // Note: Raylib doesn't provide runtime VSync control, so we'll just track the setting
+        // In a real implementation, this might require recreation of the window or other measures
+        // For now, we'll just acknowledge the setting exists and could be applied on restart
+        if game.settings.vsync_enabled {
+            // VSync would be enabled - in practice this might require window recreation
+        } else {
+            // VSync would be disabled
+        }
+    }
+
+    /// Apply music settings changes
+    fn apply_music_settings(&mut self, game: &Game) {
+        let settings = &game.settings;
+
+        if settings.music_muted {
+            self.audio_system.stop_music();
+        } else {
+            self.audio_system.set_music_volume(settings.music_volume);
+            if !self.audio_system.is_music_playing() {
+                self.audio_system.start_music(settings.music_volume, false);
+            }
         }
     }
 }

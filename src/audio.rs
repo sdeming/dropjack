@@ -6,11 +6,14 @@ use std::collections::HashMap;
 ///
 /// Supports individual sound files for each of the 12 audio events.
 /// Falls back to click.ogg if specific event sounds are missing.
+/// Also includes music playback capabilities (stubbed for now).
 pub struct AudioSystem {
     _stream: OutputStream, // Keep alive for the entire program duration
     stream_handle: OutputStreamHandle,
     sound_data: HashMap<AudioEvent, Vec<u8>>, // Event-specific audio data
     fallback_sound: Option<Vec<u8>>,          // Fallback click.ogg for missing sounds
+    music_playing: bool,                      // Track if music is currently playing
+    current_music_volume: f32,                // Current music volume
 }
 
 impl AudioSystem {
@@ -31,6 +34,8 @@ impl AudioSystem {
                     stream_handle: OutputStream::try_default().unwrap().1,
                     sound_data: HashMap::new(),
                     fallback_sound: None,
+                    music_playing: false,
+                    current_music_volume: 0.7,
                 };
             }
         };
@@ -62,11 +67,24 @@ impl AudioSystem {
             stream_handle,
             sound_data,
             fallback_sound,
+            music_playing: false,
+            current_music_volume: 0.7,
         }
     }
 
-    /// Play sound for a specific audio event
-    pub fn play_event(&self, event: AudioEvent, _rl: &mut raylib::prelude::RaylibHandle) {
+    /// Play sound for a specific audio event with volume control
+    pub fn play_event(
+        &self,
+        event: AudioEvent,
+        volume: f32,
+        muted: bool,
+        _rl: &mut raylib::prelude::RaylibHandle,
+    ) {
+        // Don't play if muted or volume is 0
+        if muted || volume <= 0.0 {
+            return;
+        }
+
         // Try to get event-specific sound, fall back to click.ogg if not found
         let sound_data = self.sound_data.get(&event).or(self.fallback_sound.as_ref());
 
@@ -76,8 +94,12 @@ impl AudioSystem {
 
             match Decoder::new(cursor) {
                 Ok(source) => {
-                    // Play the sound directly - rodio handles mixing automatically
-                    if let Err(e) = self.stream_handle.play_raw(source.convert_samples()) {
+                    // Apply volume adjustment and play the sound
+                    let source_with_volume = source.amplify(volume);
+                    if let Err(e) = self
+                        .stream_handle
+                        .play_raw(source_with_volume.convert_samples())
+                    {
                         eprintln!("Failed to play sound for {:?}: {}", event, e);
                     }
                 }
@@ -168,6 +190,37 @@ impl AudioSystem {
         let specific_sounds = self.sound_data.len();
         let total_possible = Self::get_audio_config().len();
         (specific_sounds, total_possible)
+    }
+
+    /// Start playing background music (stubbed implementation)
+    pub fn start_music(&mut self, volume: f32, _muted: bool) {
+        // In a real implementation, this would load and start playing a music file
+        // For now, we just track the state
+        self.music_playing = true;
+        self.current_music_volume = volume;
+        // TODO: Load and play actual music file (e.g., "assets/music/background.ogg")
+    }
+
+    /// Stop playing background music
+    pub fn stop_music(&mut self) {
+        self.music_playing = false;
+        // TODO: Stop the actual music playback
+    }
+
+    /// Set music volume
+    pub fn set_music_volume(&mut self, volume: f32) {
+        self.current_music_volume = volume.clamp(0.0, 1.0);
+        // TODO: Apply volume to the currently playing music
+    }
+
+    /// Check if music is currently playing
+    pub fn is_music_playing(&self) -> bool {
+        self.music_playing
+    }
+
+    /// Get current music volume
+    pub fn get_music_volume(&self) -> f32 {
+        self.current_music_volume
     }
 
     /// List which sounds are loaded and which are using fallback

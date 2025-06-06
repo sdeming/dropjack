@@ -329,7 +329,13 @@ impl BackgroundRenderer {
                     BoardConfig::OFFSET_Y,
                     x + j,
                     BoardConfig::OFFSET_Y + board_pixel_height,
-                    Color::new(0, 0, 0, (BackgroundConfig::WEAVE_BASE_ALPHA + j * BackgroundConfig::WEAVE_ALPHA_STEP) as u8),
+                    Color::new(
+                        0,
+                        0,
+                        0,
+                        (BackgroundConfig::WEAVE_BASE_ALPHA
+                            + j * BackgroundConfig::WEAVE_ALPHA_STEP) as u8,
+                    ),
                 );
             }
         }
@@ -343,7 +349,13 @@ impl BackgroundRenderer {
                     y + j,
                     BoardConfig::OFFSET_X + board_pixel_width,
                     y + j,
-                    Color::new(0, 0, 0, (BackgroundConfig::WEAVE_BASE_ALPHA + j * BackgroundConfig::WEAVE_ALPHA_STEP) as u8),
+                    Color::new(
+                        0,
+                        0,
+                        0,
+                        (BackgroundConfig::WEAVE_BASE_ALPHA
+                            + j * BackgroundConfig::WEAVE_ALPHA_STEP) as u8,
+                    ),
                 );
             }
         }
