@@ -120,13 +120,22 @@ pub struct HighScoreConfig;
 
 impl HighScoreConfig {
     // Layout
-    pub const BASE_X: i32 = 340;
-    pub const BASE_Y: i32 = 450;
-    pub const Y_SPACING: i32 = 35;
+    pub const BASE_X: i32 = 405;
+    pub const BASE_Y: i32 = 600;
+    pub const Y_SPACING: i32 = 30;
+    pub const COLUMN_WIDTH: i32 = 250;
     pub const CIRCLE_CENTER_X_OFFSET: i32 = 15;
-    pub const CIRCLE_RADIUS: f32 = 12.0;
-    pub const TITLE_Y_OFFSET: i32 = 50;
+    pub const CIRCLE_RADIUS: f32 = 14.0;
+    pub const TITLE_Y_OFFSET: i32 = 70;
     pub const CIRCLE_Y_OFFSET: i32 = 15;
+    pub const COLUMN_TITLE_Y_OFFSET: i32 = 40;
+
+    // Background rectangle dimensions
+    pub const BACKGROUND_X_OFFSET: i32 = -20;
+    pub const BACKGROUND_Y_OFFSET: i32 = -10;
+    pub const BACKGROUND_WIDTH: i32 = 540;
+    pub const BACKGROUND_HEIGHT: i32 = 190;
+    pub const BACKGROUND_CORNER_RADIUS: f32 = 8.0;
 
     // Colors
     pub const GOLD_COLOR: Color = Color::new(255, 215, 0, 255);
@@ -138,6 +147,7 @@ impl HighScoreConfig {
     pub const EASY_COLOR: Color = Color::new(0, 200, 0, 255);
     pub const HARD_COLOR: Color = Color::new(255, 100, 100, 255);
     pub const CIRCLE_OUTLINE_COLOR: Color = Color::new(0, 0, 0, 150);
+    pub const BACKGROUND_COLOR: Color = Color::new(0, 30, 0, 200);
 
     // Typography
     pub const TITLE_SIZE: f32 = 36.0;
@@ -150,6 +160,35 @@ impl HighScoreConfig {
     pub const DIFFICULTY_SPACING: f32 = 1.0;
     pub const SCORE_SIZE: f32 = 20.0;
     pub const SCORE_SPACING: f32 = 1.0;
+}
+
+/// Main menu configuration
+pub struct MainMenuConfig;
+
+impl MainMenuConfig {
+    // Layout
+    pub const BASE_X: i32 = (ScreenConfig::WIDTH - MainMenuConfig::OPTION_WIDTH) / 2;
+    pub const BASE_Y: i32 = 260;
+    pub const OPTION_SPACING: i32 = 60;
+    pub const OPTION_WIDTH: i32 = 240;
+    pub const OPTION_HEIGHT: i32 = 45;
+    pub const TEXT_X_OFFSET: i32 = 20;
+    pub const TEXT_Y_OFFSET: i32 = 12;
+    pub const INSTRUCTION_Y_OFFSET: i32 = 180;
+
+    // Colors
+    pub const SELECTED_BG: Color = Color::new(255, 215, 0, 180);
+    pub const UNSELECTED_BG: Color = Color::new(40, 40, 60, 180);
+    pub const SELECTED_TEXT_COLOR: Color = Color::new(0, 0, 0, 255);
+    pub const UNSELECTED_TEXT_COLOR: Color = Color::new(240, 240, 240, 255);
+    pub const BORDER_COLOR: Color = Color::new(255, 215, 0, 255);
+    pub const INSTRUCTION_COLOR: Color = Color::new(200, 200, 200, 255);
+
+    // Typography
+    pub const TEXT_SIZE: f32 = 28.0;
+    pub const TEXT_SPACING: f32 = 1.2;
+    pub const INSTRUCTION_SIZE: f32 = 22.0;
+    pub const INSTRUCTION_SPACING: f32 = 1.0;
 }
 
 /// Start button configuration

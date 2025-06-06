@@ -44,7 +44,7 @@ impl Settings {
         let panel_x = ScreenConfig::WIDTH / 2 - 200;
         let panel_y = 280;
         let panel_width = 400;
-        let panel_height = 280;
+        let panel_height = 330; // Increased height for difficulty option
 
         // Semi-transparent background for settings panel
         d.draw_rectangle(
@@ -201,6 +201,46 @@ impl Settings {
             vsync_color,
         );
 
+        // Difficulty
+        let difficulty_text = match settings.difficulty {
+            crate::models::Difficulty::Easy => "Difficulty: Easy",
+            crate::models::Difficulty::Hard => "Difficulty: Hard",
+        };
+        let difficulty_color = if selected_option == 3 {
+            Color::YELLOW
+        } else {
+            Color::WHITE
+        };
+
+        // Draw selection indicator for difficulty
+        if selected_option == 3 {
+            d.draw_rectangle(
+                panel_x + 5,
+                option_y_start + option_spacing * 3 - 8,
+                panel_width - 10,
+                40,
+                Color::new(255, 255, 0, 80),
+            );
+            d.draw_rectangle_lines(
+                panel_x + 5,
+                option_y_start + option_spacing * 3 - 8,
+                panel_width - 10,
+                40,
+                Color::YELLOW,
+            );
+        }
+
+        SharedRenderer::draw_text(
+            d,
+            font,
+            difficulty_text,
+            label_x,
+            (option_y_start + option_spacing * 3) as f32,
+            24.0,
+            1.2,
+            difficulty_color,
+        );
+
         // Volume sliders (visual representation)
         Self::draw_volume_slider(
             d,
@@ -249,9 +289,9 @@ impl Settings {
         y: i32,
     ) {
         let instruction_text = if has_controller {
-            "D-Pad Up/Down: Navigate  |  Left/Right: Adjust  |  A: Toggle  |  B: Back"
+            "D-Pad Up/Down: Navigate  |  Left/Right: Adjust/Change  |  A: Toggle  |  B: Back"
         } else {
-            "Up/Down: Navigate  |  Left/Right: Adjust  |  Space: Toggle  |  ESC: Back"
+            "Up/Down: Navigate  |  Left/Right: Adjust/Change  |  Space: Toggle  |  ESC: Back"
         };
 
         // Center the instruction text

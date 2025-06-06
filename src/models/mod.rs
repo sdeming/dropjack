@@ -25,8 +25,9 @@ pub struct GameSettings {
     pub sound_effects_volume: f32, // 0.0 to 1.0
     pub sound_effects_muted: bool,
     pub vsync_enabled: bool,
+    pub difficulty: game::Difficulty, // Game difficulty setting
     #[serde(skip)]
-    pub selected_option: usize, // 0: Music, 1: SFX, 2: VSync (for settings navigation)
+    pub selected_option: usize, // 0: Music, 1: SFX, 2: VSync, 3: Difficulty (for settings navigation)
 }
 
 impl Default for GameSettings {
@@ -37,6 +38,7 @@ impl Default for GameSettings {
             sound_effects_volume: 0.8,
             sound_effects_muted: false,
             vsync_enabled: true,
+            difficulty: game::Difficulty::Easy,
             selected_option: 0,
         }
     }
@@ -139,6 +141,7 @@ mod tests {
             sound_effects_volume: 0.3,
             sound_effects_muted: false,
             vsync_enabled: false,
+            difficulty: game::Difficulty::Hard,
             selected_option: 2, // This should be skipped in serialization
         };
 
@@ -151,6 +154,7 @@ mod tests {
         assert_eq!(deserialized.sound_effects_volume, 0.3);
         assert_eq!(deserialized.sound_effects_muted, false);
         assert_eq!(deserialized.vsync_enabled, false);
+        assert_eq!(deserialized.difficulty, game::Difficulty::Hard);
 
         // Check that selected_option is reset to default (0) since it's marked #[serde(skip)]
         assert_eq!(deserialized.selected_option, 0);
@@ -198,6 +202,7 @@ mod tests {
 
         // Create custom settings
         let mut original_settings = GameSettings::default();
+        original_settings.difficulty = game::Difficulty::Hard;
         original_settings.music_volume = 0.4;
         original_settings.music_muted = true;
         original_settings.sound_effects_volume = 0.6;

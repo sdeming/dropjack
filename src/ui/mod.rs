@@ -36,11 +36,167 @@ use crate::audio::AudioSystem;
 use crate::game::Game;
 use raylib::prelude::*;
 
+/// Font collection for different size ranges
+#[derive(Debug)]
+pub struct FontCollection {
+    /// Small text (12-24px) - loaded at base size 24
+    small: Font,
+    /// Medium text (24-48px) - loaded at base size 48  
+    medium: Font,
+    /// Large text (48-96px) - loaded at base size 96
+    large: Font,
+    /// Extra large text (96px+) - loaded at base size 120
+    extra_large: Font,
+}
+
+impl FontCollection {
+    /// Create a new font collection from a single font file
+    fn new(
+        rl: &mut RaylibHandle,
+        thread: &RaylibThread,
+        font_path: &str,
+        description: &str,
+    ) -> Self {
+        println!(
+            "Loading optimized font collection for {}: {}",
+            description, font_path
+        );
+
+        // Load fonts at their optimal base sizes using LoadFontEx for crystal clear rendering
+        let small = Self::load_font_ex(
+            rl,
+            thread,
+            font_path,
+            24,
+            &format!("{} (small)", description),
+        );
+        let medium = Self::load_font_ex(
+            rl,
+            thread,
+            font_path,
+            48,
+            &format!("{} (medium)", description),
+        );
+        let large = Self::load_font_ex(
+            rl,
+            thread,
+            font_path,
+            96,
+            &format!("{} (large)", description),
+        );
+        // For title font, load at 120px which is the exact size used (TextConfig::TITLE_SIZE)
+        let extra_large = Self::load_font_ex(
+            rl,
+            thread,
+            font_path,
+            120,
+            &format!("{} (extra large)", description),
+        );
+
+        FontCollection {
+            small,
+            medium,
+            large,
+            extra_large,
+        }
+    }
+
+    /// Load a font at a specific base size using LoadFontEx for optimal quality
+    fn load_font_ex(
+        rl: &mut RaylibHandle,
+        thread: &RaylibThread,
+        path: &str,
+        base_size: i32,
+        description: &str,
+    ) -> Font {
+        use std::ffi::CString;
+        use std::ptr;
+
+        // Convert path to C string
+        let c_path = CString::new(path).expect("Failed to create CString for font path");
+
+        // Use raylib's LoadFontEx to load font at exact base size
+        let raylib_font =
+            unsafe { raylib::ffi::LoadFontEx(c_path.as_ptr(), base_size, ptr::null_mut(), 0) };
+
+        // Check if font loaded successfully
+        if raylib_font.texture.id == 0 {
+            eprintln!(
+                "Warning: Failed to load font {} with LoadFontEx, falling back to default loading",
+                path
+            );
+            return Self::load_font_fallback(rl, thread, path, description);
+        }
+
+        // Convert raylib font to raylib-rs Font
+        let font = unsafe { Font::from_raw(raylib_font) };
+
+        // Apply texture filtering for even smoother rendering
+        Self::apply_font_filtering(&font);
+
+        println!(
+            "  ✓ Loaded {} at exact size {}px using LoadFontEx",
+            description, base_size
+        );
+        font
+    }
+
+    /// Fallback font loading method if LoadFontEx fails
+    fn load_font_fallback(
+        rl: &mut RaylibHandle,
+        thread: &RaylibThread,
+        path: &str,
+        description: &str,
+    ) -> Font {
+        let font = rl.load_font(thread, path).unwrap_or_else(|e| {
+            panic!(
+                "Critical error: Could not load font {} for {}: {:?}",
+                path, description, e
+            );
+        });
+
+        Self::apply_font_filtering(&font);
+        font
+    }
+
+    /// Apply texture filtering to font for smoother rendering
+    fn apply_font_filtering(font: &Font) {
+        // Apply bilinear filtering to the font texture for smoother scaling
+        unsafe {
+            use raylib::ffi::{SetTextureFilter, TextureFilter};
+            let texture_id = raylib::ffi::Texture2D {
+                id: font.texture().id,
+                width: font.texture().width,
+                height: font.texture().height,
+                mipmaps: font.texture().mipmaps,
+                format: font.texture().format as i32,
+            };
+            SetTextureFilter(texture_id, TextureFilter::TEXTURE_FILTER_BILINEAR as i32);
+        }
+    }
+
+    /// Get the most appropriate font for a given text size
+    pub fn get_font_for_size(&self, size: f32) -> &Font {
+        match size {
+            s if s <= 24.0 => &self.small,
+            s if s <= 48.0 => &self.medium,
+            s if s <= 96.0 => &self.large,
+            _ => &self.extra_large, // This will be perfect for 120px title text
+        }
+    }
+
+    /// Get the default/medium font for backward compatibility
+    pub fn default(&self) -> &Font {
+        &self.medium
+    }
+}
+
 pub struct GameUI {
     rl: RaylibHandle,
     thread: RaylibThread,
-    font: Font,
-    title_font: Font,
+    // Enhanced font system with multiple sizes for optimal rendering
+    default_fonts: FontCollection,
+    title_fonts: FontCollection,
     card_atlas: Option<Texture2D>,
     particle_system: ParticleSystem,
     input_handler: InputHandler,
@@ -91,14 +247,12 @@ impl GameUI {
         rl.set_target_fps(PerformanceConfig::TARGET_FPS);
         rl.set_exit_key(None); // Disable ESC from closing the window
 
-        // Load the custom fonts
-        let font = rl
-            .load_font(&thread, "assets/fonts/default.ttf")
-            .expect("Warning: Could not load font assets/fonts/default.ttf, using default font");
-
-        let title_font = rl.load_font(&thread, "assets/fonts/title.ttf").expect(
-            "Warning: Could not load font assets/fonts/title.ttf, using default font for titles",
-        );
+        // Load enhanced font collections with multiple sizes for optimal rendering
+        println!("Initializing enhanced font system...");
+        let default_fonts =
+            FontCollection::new(&mut rl, &thread, "assets/fonts/default.ttf", "default");
+        let title_fonts = FontCollection::new(&mut rl, &thread, "assets/fonts/title.ttf", "title");
+        println!("✓ Font system initialized with bilinear filtering");
 
         // Load the card atlas
         let card_atlas = rl.load_texture(&thread, "assets/cards/atlas.png").ok();
@@ -117,8 +271,8 @@ impl GameUI {
         GameUI {
             rl,
             thread,
-            font,
-            title_font,
+            default_fonts,
+            title_fonts,
             card_atlas,
             particle_system: ParticleSystem::builder()
                 .particle_capacity(ParticleConfig::SYSTEM_CAPACITY)
@@ -130,6 +284,26 @@ impl GameUI {
             animated_background: AnimatedBackground::new(),
             audio_system,
         }
+    }
+
+    /// Get the optimal font for a given text size (default font family)
+    pub fn get_font(&self, size: f32) -> &Font {
+        self.default_fonts.get_font_for_size(size)
+    }
+
+    /// Get the optimal title font for a given text size
+    pub fn get_title_font(&self, size: f32) -> &Font {
+        self.title_fonts.get_font_for_size(size)
+    }
+
+    /// Get the default font (for backward compatibility)
+    pub fn font(&self) -> &Font {
+        self.default_fonts.default()
+    }
+
+    /// Get the title font (for backward compatibility)
+    pub fn title_font(&self) -> &Font {
+        self.title_fonts.default()
     }
 
     pub fn run(&mut self, game: &mut Game) {
@@ -187,13 +361,14 @@ impl GameUI {
         // Use elegant gradient background instead of flat DARKGREEN
         DrawingHelpers::draw_gradient_background(&mut d);
 
-        // Render game state
+        // Render game state with optimized font selection
+        // Use the extra large title font (120px) for crystal clear title rendering
         game.state.render(
             &mut d,
             game,
             has_controller,
-            &self.title_font,
-            &self.font,
+            &self.title_fonts.extra_large, // Use 120px font for title
+            &self.default_fonts.medium,    // Use 48px font for default text
             self.card_atlas
                 .as_ref()
                 .expect("Card atlas must be loaded!"),
@@ -201,8 +376,12 @@ impl GameUI {
             &mut self.animated_background,
         );
 
-        // Render FPS counter with improved styling
-        Self::render_fps_counter_static(&mut d, &self.font, self.fps_counter.get_fps());
+        // Render FPS counter with small font (20px) using 24px base
+        Self::render_fps_counter_static(
+            &mut d,
+            &self.default_fonts.small,
+            self.fps_counter.get_fps(),
+        );
     }
 
     /// Renders FPS counter with improved styling (static method to avoid borrowing issues)

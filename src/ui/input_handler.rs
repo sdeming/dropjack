@@ -1,5 +1,4 @@
 use crate::game::Game;
-use crate::models::Difficulty;
 use raylib::prelude::*;
 
 pub struct InputHandler {
@@ -41,6 +40,22 @@ impl InputMapping {
             || (has_controller
                 && (rl.is_gamepad_button_down(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_RIGHT)
                     || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_X) > 0.3))
+    }
+
+    /// Check if any "up" input is pressed
+    fn is_up_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_UP)
+            || (has_controller
+                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_UP)
+                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_Y) < -0.3))
+    }
+
+    /// Check if any "down" input is pressed
+    fn is_down_pressed(rl: &RaylibHandle, has_controller: bool) -> bool {
+        rl.is_key_pressed(KeyboardKey::KEY_DOWN)
+            || (has_controller
+                && (rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_DOWN)
+                    || rl.get_gamepad_axis_movement(0, GamepadAxis::GAMEPAD_AXIS_LEFT_Y) > 0.3))
     }
 
     /// Check if any "down" input is held down
@@ -110,36 +125,47 @@ impl InputHandler {
         game: &mut Game,
         has_controller: bool,
     ) {
-        // Handle settings screen
-        if rl.is_key_pressed(KeyboardKey::KEY_S)
-            || (has_controller
-                && rl.is_gamepad_button_pressed(0, GamepadButton::GAMEPAD_BUTTON_LEFT_FACE_UP))
-        {
-            game.transition_to_settings("StartScreen".to_string());
-            return;
-        }
-
-        // Handle difficulty selection
-        if InputMapping::is_left_pressed(rl, has_controller)
-            || InputMapping::is_right_pressed(rl, has_controller)
-        {
-            game.difficulty = match game.difficulty {
-                Difficulty::Hard => Difficulty::Easy,
-                Difficulty::Easy => Difficulty::Hard,
-            };
-
-            // Add audio event for difficulty change
+        // Handle navigation in main menu
+        if InputMapping::is_up_pressed(rl, has_controller) {
+            if game.selected_main_option > 0 {
+                game.selected_main_option -= 1;
+            } else {
+                game.selected_main_option = 2;
+            }
             game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
         }
 
-        // Handle quit confirmation
-        if InputMapping::is_escape_pressed(rl, has_controller) {
-            game.transition_to_quit_confirm();
+        if InputMapping::is_down_pressed(rl, has_controller) {
+            if game.selected_main_option < 2 {
+                game.selected_main_option += 1;
+            } else {
+                game.selected_main_option = 0;
+            }
+            game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
         }
 
-        // Start game
+        // Handle selection
         if InputMapping::is_confirm_pressed(rl, has_controller) {
-            game.start_game(game.difficulty);
+            match game.selected_main_option {
+                0 => {
+                    // Start New Game
+                    game.start_game(game.settings.difficulty);
+                }
+                1 => {
+                    // Settings
+                    game.transition_to_settings("StartScreen".to_string());
+                }
+                2 => {
+                    // Quit
+                    game.transition_to_quit_confirm();
+                }
+                _ => {}
+            }
+        }
+
+        // Handle quit confirmation directly with ESC
+        if InputMapping::is_escape_pressed(rl, has_controller) {
+            game.transition_to_quit_confirm();
         }
     }
 
@@ -359,7 +385,7 @@ impl InputHandler {
     }
 
     fn handle_settings_input(&self, rl: &mut RaylibHandle, game: &mut Game, has_controller: bool) {
-        const TOTAL_OPTIONS: usize = 3; // Music, SFX, VSync
+        const TOTAL_OPTIONS: usize = 4; // Music, SFX, VSync, Difficulty
 
         // Back to previous screen
         if rl.is_key_pressed(KeyboardKey::KEY_ESCAPE)
@@ -439,6 +465,21 @@ impl InputHandler {
             2 => { // VSync - no left/right adjustment, only toggle
                 // VSync doesn't have adjustable values, only toggle
             }
+            3 => {
+                // Difficulty
+                if left_pressed || right_pressed {
+                    game.settings.difficulty = match game.settings.difficulty {
+                        crate::models::Difficulty::Easy => crate::models::Difficulty::Hard,
+                        crate::models::Difficulty::Hard => crate::models::Difficulty::Easy,
+                    };
+                    // Also update the main game difficulty for consistency
+                    game.difficulty = game.settings.difficulty;
+                    if !game.settings.sound_effects_muted {
+                        game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
+                    }
+                    game.save_settings();
+                }
+            }
             _ => {}
         }
 
@@ -470,6 +511,19 @@ impl InputHandler {
                     game.settings.vsync_enabled = !game.settings.vsync_enabled;
                     if !game.settings.sound_effects_muted {
                         game.add_audio_event(crate::game::AudioEvent::StartGame);
+                    }
+                    game.save_settings();
+                }
+                3 => {
+                    // Difficulty Toggle (same as left/right)
+                    game.settings.difficulty = match game.settings.difficulty {
+                        crate::models::Difficulty::Easy => crate::models::Difficulty::Hard,
+                        crate::models::Difficulty::Hard => crate::models::Difficulty::Easy,
+                    };
+                    // Also update the main game difficulty for consistency
+                    game.difficulty = game.settings.difficulty;
+                    if !game.settings.sound_effects_muted {
+                        game.add_audio_event(crate::game::AudioEvent::DifficultyChange);
                     }
                     game.save_settings();
                 }

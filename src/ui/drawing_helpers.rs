@@ -52,6 +52,15 @@ impl DrawingHelpers {
         MenuRenderer::draw_main_panel(d);
     }
 
+    pub fn draw_main_menu(
+        d: &mut RaylibDrawHandle,
+        font: &Font,
+        game: &Game,
+        has_controller: bool,
+    ) {
+        MenuRenderer::draw_main_menu(d, font, game, has_controller);
+    }
+
     pub fn draw_difficulty_selector(
         d: &mut RaylibDrawHandle,
         title_font: &Font,

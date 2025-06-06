@@ -38,16 +38,10 @@ impl GameState for StartScreen {
         // Subtitle with elegant styling
         DrawingHelpers::draw_subtitle(d, font);
 
-        // Central game panel with rounded corners and shadow
-        DrawingHelpers::draw_main_panel(d);
+        // Main menu with three options
+        DrawingHelpers::draw_main_menu(d, font, game, has_controller);
 
-        // Difficulty selection with nice styling
-        DrawingHelpers::draw_difficulty_selector(d, title_font, font, game, has_controller);
-
-        // High scores in a nice panel
+        // High scores in two columns (Easy/Hard)
         DrawingHelpers::draw_high_scores_panel(d, title_font, font, game);
-
-        // Call-to-action button with glow effect
-        DrawingHelpers::draw_start_button(d, title_font, has_controller);
     }
 }

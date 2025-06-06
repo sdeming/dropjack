@@ -37,6 +37,7 @@ pub struct Game {
     pub pending_audio_events: Vec<AudioEvent>,
     pub hard_dropping_cards: Vec<PlayingCard>, // Cards that are hard dropping and still animating
     pub settings: GameSettings,                // Global game settings
+    pub selected_main_option: usize,           // 0: Start New Game, 1: Settings, 2: Quit
 }
 
 pub struct GameBuilder {
@@ -115,6 +116,8 @@ impl GameBuilder {
         let next_card = deck.draw();
         let now = Instant::now();
 
+        let settings = GameSettings::load();
+
         Ok(Game {
             state: Box::new(StartScreen),
             board,
@@ -122,7 +125,7 @@ impl GameBuilder {
             current_card: None,
             next_card,
             score: 0,
-            difficulty: self.difficulty,
+            difficulty: settings.difficulty, // Use difficulty from settings
             fall_speed: self.fall_speed,
             last_fall_time: now,
             speed_increase_interval: self.speed_increase_interval,
@@ -135,7 +138,8 @@ impl GameBuilder {
             last_dropped_x: None,
             pending_audio_events: Vec::new(),
             hard_dropping_cards: Vec::new(),
-            settings: GameSettings::load(),
+            settings,
+            selected_main_option: 0,
         })
     }
 }

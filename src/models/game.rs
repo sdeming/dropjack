@@ -101,7 +101,7 @@ impl PlayingCard {
 }
 
 // Game difficulty modes
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Difficulty {
     Easy,
     Hard,
